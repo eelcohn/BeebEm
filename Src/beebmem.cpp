@@ -58,6 +58,13 @@ Boston, MA  02110-1301, USA.
 #include "econet.h"		//Rob
 #include "debug.h"		//Rob added for INTON/OFF reporting only
 #include "teletext.h"
+#include "peripherals/copro_casper.h"	// Included for the copro_casper object and the mc68kTube_Casper variable
+#include "peripherals/copro_ciscos.h"	// Included for the copro_ciscos object and the mc68kTube_Cumana variable
+#include "peripherals/copro_cumana.h"	// Included for the copro_cumana object and the mc68kTube_Cumana variable
+
+extern copro_casper *obj_copro_casper;	// Defined in beebwin.cpp
+extern copro_cumana *obj_copro_cumana;	// Defined in beebwin.cpp
+extern copro_ciscos *obj_copro_ciscos;	// Defined in beebwin.cpp
 
 using namespace std;
 
@@ -465,12 +472,19 @@ int BeebReadMem(int Address) {
 		return Value;
 	}
 
-	if ((Address & ~0x1f)==0xfee0)
+	if ((Address & ~0x0f)==0xfee0)
 	{
 		if (TorchTube)
 			return(ReadTorchTubeFromHostSide(Address&0x1f)); //Read From Torch Tube
 		else
 			return(ReadTubeFromHostSide(Address&7)); //Read From Tube
+//		if (obj_copro_ciscos)
+//			return(obj_copro_ciscos->tube_ula->ReadHostRegister(Address & 0x0007));
+	}
+
+	if (((Address & ~0x000F) == 0xFEF0) && (obj_copro_casper != NULL)) {
+//	if (((Address & ~0x000F) == 0xFEF0) && mc68kTube_Casper) {
+		return(obj_copro_casper->host_via->ReadRegister(Address & 0x000F));
 	}
 
 	if ((Address & ~0x3)==0xfc10) {
@@ -484,6 +498,23 @@ int BeebReadMem(int Address) {
 	if ((Address & ~0x7)==0xfc40) {
 		if (IDEDriveEnabled)  return(IDERead(Address & 0x7));
 	}
+
+	if (((Address & ~0x0003) == 0xFC40) && (obj_copro_cumana != NULL)) {
+//	if (((Address & ~0x0003) == 0xFC40) && mc68kTube_Cumana) {
+		return obj_copro_cumana->sasipia->ReadRegister(Address & 0x0003);
+	}
+
+	if (((Address & ~0x0003) == 0xFC44) && (obj_copro_cumana != NULL)) {
+//	if (((Address & ~0x0003) == 0xFC44) && mc68kTube_Cumana) {
+		return obj_copro_cumana->rtcpia->ReadRegister(Address & 0x0003);
+	}
+
+	if (((Address & ~0x0003) == 0xFC48) && (obj_copro_cumana != NULL)) {
+//	if (((Address & ~0x0003) == 0xFC48) && mc68kTube_Cumana) {
+		Value = Read1770Register(Address & 0x0003);
+		WriteLog("wd177x::ReadRegister reg=%02X value=%02X 68kPC=%08X 6502PC=%04X\n", (Address & 0x0003), Value, obj_copro_cumana->cpu->cpu.pc, ProgramCounter);
+		return Value;
+	} 
 
 	if ((Address & ~0x1)==0xfc50) {
 		return(mainWin->PasteKey(Address & 0x1));
@@ -937,7 +968,14 @@ void BeebWriteMem(int Address, unsigned char Value) {
 			WriteTorchTubeFromHostSide(Address&0xf,Value);
 		else
 			WriteTubeFromHostSide(Address&7,Value);
+//		if (obj_copro_ciscos)
+//			obj_copro_ciscos->tube_ula->WriteHostRegister(Address & 0x0007, Value);
 	}
+
+	if ((Address & ~0x000F) == 0xFEF0)
+		if (obj_copro_casper != NULL)
+//		if (mc68kTube_Casper)
+			obj_copro_casper->host_via->WriteRegister(Address & 0x000F, Value);
 
 	if ((Address & ~0x3)==0xfc10) {
 		TeleTextWrite((Address & 0x3),Value);
@@ -950,6 +988,25 @@ void BeebWriteMem(int Address, unsigned char Value) {
 			return;
 		}
 	}
+
+	if (((Address & ~0x0003) == 0xFC40) && (obj_copro_cumana != NULL)) {
+//	if (((Address & ~0x0003) == 0xFC40) && mc68kTube_Cumana) {
+		obj_copro_cumana->sasipia->WriteRegister(Address & 0x0003, Value);
+		return;
+	}
+
+	if (((Address & ~0x0003) == 0xFC44) && (obj_copro_cumana != NULL)) {
+//	if (((Address & ~0x0003) == 0xFC44) && mc68kTube_Cumana) {
+		obj_copro_cumana->rtcpia->WriteRegister(Address & 0x0003, Value);
+		return;
+	}
+
+	if (((Address & ~0x0003) == 0xFC48) && (obj_copro_cumana != NULL)) {
+//	if (((Address & ~0x0003) == 0xFC48) && mc68kTube_Cumana) {
+		WriteLog("wd177x::WriteRegister reg=%02X value=%02X 68kPC=%08X 6502PC=%04X\n", (Address & 0x0003), Value, obj_copro_cumana->cpu->cpu.pc, ProgramCounter);
+		Write1770Register(Address & 0x0003, Value);
+		return;
+	} 
 
 	if ((Address & ~0x7)==0xfc40) {
 		if (IDEDriveEnabled) {

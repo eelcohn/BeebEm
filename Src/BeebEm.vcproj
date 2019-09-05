@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="BeebEm"
 	ProjectGUID="{2A563DA8-9784-4AD0-935F-496CEFA5CDEC}"
 	RootNamespace="BeebEm"
@@ -226,6 +226,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\peripherals\copro_casper.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peripherals\copro_ciscos.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peripherals\copro_cumana.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peripherals\copro_torch_z80.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\csw.cpp"
 				>
 			</File>
@@ -250,11 +266,31 @@
 				>
 			</File>
 			<File
+				RelativePath=".\components\i8255.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ide.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\Main.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\components\mc146818.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\components\mc6821.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\components\mc68k.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\components\r6522.cpp"
 				>
 			</File>
 			<File
@@ -298,6 +334,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\components\ula9c018.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\userkybd.cpp"
 				>
 			</File>
@@ -314,11 +354,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\components\wd177x.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\z80.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\z80_support.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\components\z80a.cpp"
 				>
 			</File>
 			<File
@@ -368,6 +416,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\peripherals\copro_casper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\peripherals\copro_ciscos.h"
+				>
+			</File>
+			<File
+				RelativePath=".\peripherals\copro_cumana.h"
+				>
+			</File>
+			<File
+				RelativePath=".\peripherals\copro_torch_z80.h"
+				>
+			</File>
+			<File
 				RelativePath=".\csw.h"
 				>
 			</File>
@@ -396,6 +460,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\components\i8255.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ide.h"
 				>
 			</File>
@@ -404,7 +472,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\components\mc146818.h"
+				>
+			</File>
+			<File
+				RelativePath=".\components\mc6821.h"
+				>
+			</File>
+			<File
+				RelativePath=".\components\mc68k.h"
+				>
+			</File>
+			<File
 				RelativePath=".\port.h"
+				>
+			</File>
+			<File
+				RelativePath=".\components\r6522.h"
 				>
 			</File>
 			<File
@@ -448,6 +532,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\components\ula9c018.h"
+				>
+			</File>
+			<File
 				RelativePath=".\userkybd.h"
 				>
 			</File>
@@ -472,7 +560,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\components\wd177x.h"
+				>
+			</File>
+			<File
 				RelativePath=".\z80.h"
+				>
+			</File>
+			<File
+				RelativePath=".\components\z80a.h"
 				>
 			</File>
 			<File

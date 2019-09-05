@@ -70,6 +70,9 @@ Boston, MA  02110-1301, USA.
 #include "serialdevices.h"
 #include "Arm.h"
 #include "version.h"
+#include "peripherals/copro_casper.h"		// Included for the mc68kTube_Casper and Enable_Casper68k variables
+#include "peripherals/copro_ciscos.h"		// Included for the mc68kTube_CiscOS and Enable_CiscOS68k variables
+#include "peripherals/copro_cumana.h"		// Included for the mc68kTube_Cumana and Enable_Cumana68k variables
 
 using namespace Gdiplus;
 
@@ -87,6 +90,9 @@ void i86_main(void);
 FILE *CMDF2;
 unsigned char CMA2;
 CArm *arm = NULL;
+copro_casper *obj_copro_casper = NULL;	// Create a new Casper co-processor object
+copro_ciscos *obj_copro_ciscos = NULL;	// Create a new CiscOS co-processor object
+copro_cumana *obj_copro_cumana = NULL;	// Create a new Cumana co-processor object
 
 unsigned char HideMenuEnabled;
 unsigned char DisableMenu = 0;
@@ -111,12 +117,16 @@ static const char *AboutText =
 	"BeebEm - Emulating:\n\nBBC Micro Model B\nBBC Micro Model B + IntegraB\n"
 	"BBC Micro Model B Plus (128)\nAcorn Master 128\n\n"
 	"Acorn 65C02 Second Processor\n"
-	"Torch Z80 Second Processor\nAcorn Z80 Second Processor\n"
+	"Acorn ARM Second Processor\n"
+	"Acorn Z80 Second Processor\n"
+	"Torch Z80 Second Processor\n"
 #ifdef M512COPRO_ENABLED
 	"Master 512 Second Processor\n"
 #endif
-	"ARM Second Processor\n\n"
-	"Version " VERSION_STRING ", Feb 2012";
+	"Casper 68008 Second Processor\n"
+	"CiscOS Second Processor\n"
+	"Cumana 68000 Second Processor\n\n"
+	"Version " VERSION_STRING ", " VERSION_DATE;
 
 /* Prototypes */
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -464,6 +474,36 @@ void BeebWin::ResetBeebSystem(unsigned char NewModelType,unsigned char TubeStatu
 		if (arm) delete arm;
 		arm = new CArm;
 		Enable_Arm = 1;
+	}
+
+	if (mc68kTube_Casper) {
+		if (obj_copro_casper)
+			delete obj_copro_casper;
+		obj_copro_casper = new copro_casper;
+		obj_copro_casper->Reset();
+//		Enable_Casper68k = 1;
+//	} else
+//		Enable_Casper68k = 0;
+	}
+
+	if (mc68kTube_CiscOS) {
+		if (obj_copro_ciscos)
+			delete obj_copro_ciscos;
+		obj_copro_ciscos = new copro_ciscos;
+		obj_copro_ciscos->Reset();
+//		Enable_CiscOS68k = 1;
+//	} else
+//		Enable_CiscOS68k = 0;
+	}
+
+	if (mc68kTube_Cumana) {
+		if (obj_copro_cumana)
+			delete obj_copro_cumana;
+		obj_copro_cumana = new copro_cumana;
+		obj_copro_cumana->Reset();
+//		Enable_Cumana68k = 1;
+//	} else
+//		Enable_Cumana68k = 0;
 	}
 
 	SysVIAReset();
@@ -871,6 +911,9 @@ void BeebWin::InitMenu(void)
 	CheckMenuItem(m_hMenu, IDM_TORCH, (TorchTube)?MF_CHECKED:MF_UNCHECKED);
 	CheckMenuItem(m_hMenu, IDM_ACORNZ80, (AcornZ80)?MF_CHECKED:MF_UNCHECKED);
 	CheckMenuItem(m_hMenu, IDM_ARM, (ArmTube)?MF_CHECKED:MF_UNCHECKED);
+	CheckMenuItem(m_hMenu, IDM_COPRO_CASPER68K, (mc68kTube_Casper)?MF_CHECKED:MF_UNCHECKED);
+	CheckMenuItem(m_hMenu, IDM_COPRO_CISCOS, (mc68kTube_CiscOS)?MF_CHECKED:MF_UNCHECKED);
+	CheckMenuItem(m_hMenu, IDM_COPRO_CUMANA68K, (mc68kTube_Cumana)?MF_CHECKED:MF_UNCHECKED);
 	SetRomMenu();
 	CheckMenuItem(hMenu, IDM_SWRAMBOARD, SWRAMBoardEnabled ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, IDM_IGNOREILLEGALOPS, IgnoreIllegalInstructions ? MF_CHECKED : MF_UNCHECKED);
@@ -937,6 +980,21 @@ void BeebWin::UpdateModelType() {
 	CheckMenuItem(hMenu, ID_MODELBINT, (MachineType == 1) ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, ID_MODELBP, (MachineType == 2) ? MF_CHECKED : MF_UNCHECKED);
 	CheckMenuItem(hMenu, ID_MASTER128, (MachineType == 3) ? MF_CHECKED : MF_UNCHECKED);
+}
+
+void BeebWin::UpdateSecondProcessorMenu() {
+	HMENU hMenu= m_hMenu;
+
+	CheckMenuItem(hMenu, IDM_TUBE, (TubeEnabled)?MF_CHECKED:MF_UNCHECKED);
+#ifdef M512COPRO_ENABLED
+	CheckMenuItem(hMenu, IDM_TUBE186, (Tube186Enabled)?MF_CHECKED:MF_UNCHECKED);
+#endif
+	CheckMenuItem(hMenu, IDM_TORCH, (TorchTube)?MF_CHECKED:MF_UNCHECKED);
+	CheckMenuItem(hMenu, IDM_ARM, (ArmTube)?MF_CHECKED:MF_UNCHECKED);
+	CheckMenuItem(hMenu, IDM_COPRO_CASPER68K, (mc68kTube_Casper)?MF_CHECKED:MF_UNCHECKED);
+	CheckMenuItem(hMenu, IDM_COPRO_CISCOS, (mc68kTube_CiscOS)?MF_CHECKED:MF_UNCHECKED);
+	CheckMenuItem(hMenu, IDM_COPRO_CUMANA68K, (mc68kTube_Cumana)?MF_CHECKED:MF_UNCHECKED);
+	CheckMenuItem(hMenu, IDM_ACORNZ80, (AcornZ80)?MF_CHECKED:MF_UNCHECKED);
 }
 
 void BeebWin::UpdateSFXMenu() {
@@ -1366,6 +1424,34 @@ LRESULT CALLBACK WndProc(
 								arm = new CArm;
 								Enable_Arm = 1;
 							}
+
+//							Enable_Casper68k = 0;
+							if (mc68kTube_Casper) {
+								if (obj_copro_casper)
+									delete obj_copro_casper;
+								obj_copro_casper = new copro_casper;
+								obj_copro_casper->Reset();
+//								Enable_Casper68k = 1;
+							}
+
+//							Enable_CiscOS68k = 0;
+							if (mc68kTube_CiscOS) {
+								if (obj_copro_ciscos)
+									delete obj_copro_ciscos;
+								obj_copro_ciscos = new copro_ciscos;
+								obj_copro_ciscos->Reset();
+//								Enable_CiscOS68k = 1;
+							}
+
+//							Enable_Cumana68k = 0;
+							if (mc68kTube_Cumana) {
+								if (obj_copro_cumana)
+									delete obj_copro_cumana;
+								obj_copro_cumana = new copro_cumana;
+								obj_copro_cumana->Reset();
+//								Enable_Cumana68k = 1;
+							}
+
 							Disc8271_reset();
 							Reset1770();
 							if (EconetEnabled) EconetReset();//Rob
@@ -3215,91 +3301,140 @@ void BeebWin::HandleCommand(int MenuId)
 		CreateBitmap();
 		break;
 
+	case IDM_COPRO_CASPER68K:
+		TubeEnabled			= 0;
+		AcornZ80			= 0;
+		TorchTube			= 0;
+        ArmTube				= 0;
+#ifdef M512COPRO_ENABLED
+		Tube186Enabled		= 0;
+#endif
+		if (mc68kTube_Casper)
+			mc68kTube_Casper = FALSE;
+		else
+			mc68kTube_Casper = TRUE;
+		mc68kTube_CiscOS	= FALSE;
+		mc68kTube_Cumana	= FALSE;
+
+		UpdateSecondProcessorMenu();
+		ResetBeebSystem(MachineType,TubeEnabled,0);
+		break;
+
+	case IDM_COPRO_CISCOS:
+		TubeEnabled			= 0;
+		AcornZ80			= 0;
+		TorchTube			= 0;
+        ArmTube				= 0;
+#ifdef M512COPRO_ENABLED
+		Tube186Enabled		= 0;
+#endif
+		mc68kTube_Casper = FALSE;
+		if (mc68kTube_CiscOS)
+			mc68kTube_CiscOS = FALSE;
+		else
+			mc68kTube_CiscOS = TRUE;
+		mc68kTube_Cumana = FALSE;
+
+		UpdateSecondProcessorMenu();
+		ResetBeebSystem(MachineType,TubeEnabled,0);
+		break;
+
+	case IDM_COPRO_CUMANA68K:
+		TubeEnabled			= 0;
+		AcornZ80			= 0;
+		TorchTube			= 0;
+        ArmTube				= 0;
+#ifdef M512COPRO_ENABLED
+		Tube186Enabled		= 0;
+#endif
+		mc68kTube_Casper = FALSE;
+		mc68kTube_CiscOS = FALSE;
+		if (mc68kTube_Cumana)
+			mc68kTube_Cumana = FALSE;
+		else
+			mc68kTube_Cumana = TRUE;
+
+		UpdateSecondProcessorMenu();
+		ResetBeebSystem(MachineType,TubeEnabled,0);
+		break;
+
 	case IDM_ARM:
-		ArmTube=1-ArmTube;
-        TubeEnabled = 0;
+		TubeEnabled			= 0;
+		AcornZ80			= 0;
+		TorchTube			= 0;
+        ArmTube				= 1 - ArmTube;
 #ifdef M512COPRO_ENABLED
-        Tube186Enabled = 0;
+		Tube186Enabled		= 0;
 #endif
-        TorchTube = 0;
-		AcornZ80 = 0;
-        CheckMenuItem(hMenu, IDM_TUBE, (TubeEnabled)?MF_CHECKED:MF_UNCHECKED);
-#ifdef M512COPRO_ENABLED
-        CheckMenuItem(hMenu, IDM_TUBE186, (Tube186Enabled)?MF_CHECKED:MF_UNCHECKED);
-#endif
-        CheckMenuItem(hMenu, IDM_TORCH, (TorchTube)?MF_CHECKED:MF_UNCHECKED);
-        CheckMenuItem(hMenu, IDM_ARM, (ArmTube)?MF_CHECKED:MF_UNCHECKED);
-		CheckMenuItem(hMenu, IDM_ACORNZ80, (AcornZ80)?MF_CHECKED:MF_UNCHECKED);
+		mc68kTube_Casper	= FALSE;
+		mc68kTube_CiscOS	= FALSE;
+		mc68kTube_Cumana	= FALSE;
+
+		UpdateSecondProcessorMenu();
 		ResetBeebSystem(MachineType,TubeEnabled,0);
 		break;
 
 	case IDM_TUBE:
-		TubeEnabled=1-TubeEnabled;
+		TubeEnabled			= 1 - TubeEnabled;
+		AcornZ80			= 0;
+		TorchTube			= 0;
+        ArmTube				= 0;
 #ifdef M512COPRO_ENABLED
-        Tube186Enabled = 0;
+		Tube186Enabled		= 0;
 #endif
-        TorchTube = 0;
-        ArmTube = 0;
-		AcornZ80 = 0;
-        CheckMenuItem(hMenu, IDM_TUBE, (TubeEnabled)?MF_CHECKED:MF_UNCHECKED);
-        CheckMenuItem(hMenu, IDM_ARM, (ArmTube)?MF_CHECKED:MF_UNCHECKED);
-#ifdef M512COPRO_ENABLED
-        CheckMenuItem(hMenu, IDM_TUBE186, (Tube186Enabled)?MF_CHECKED:MF_UNCHECKED);
-#endif
-        CheckMenuItem(hMenu, IDM_TORCH, (TorchTube)?MF_CHECKED:MF_UNCHECKED);
-		CheckMenuItem(hMenu, IDM_ACORNZ80, (AcornZ80)?MF_CHECKED:MF_UNCHECKED);
+		mc68kTube_Casper	= FALSE;
+		mc68kTube_CiscOS	= FALSE;
+		mc68kTube_Cumana	= FALSE;
+
+		UpdateSecondProcessorMenu();
 		ResetBeebSystem(MachineType,TubeEnabled,0);
 		break;
 
 #ifdef M512COPRO_ENABLED
 	case IDM_TUBE186:
-		Tube186Enabled=1-Tube186Enabled;
-        TubeEnabled = 0;
-        TorchTube = 0;
-		AcornZ80 = 0;
-        ArmTube = 0;
-        CheckMenuItem(hMenu, IDM_ARM, (ArmTube)?MF_CHECKED:MF_UNCHECKED);
-        CheckMenuItem(hMenu, IDM_TUBE, (TubeEnabled)?MF_CHECKED:MF_UNCHECKED);
-        CheckMenuItem(hMenu, IDM_TUBE186, (Tube186Enabled)?MF_CHECKED:MF_UNCHECKED);
-        CheckMenuItem(hMenu, IDM_TORCH, (TorchTube)?MF_CHECKED:MF_UNCHECKED);
-		CheckMenuItem(hMenu, IDM_ACORNZ80, (AcornZ80)?MF_CHECKED:MF_UNCHECKED);
+		TubeEnabled			= 0;
+		AcornZ80			= 0;
+		TorchTube			= 0;
+        ArmTube				= 0;
+		Tube186Enabled		= 1 - Tube186Enabled;
+		mc68kTube_Casper	= FALSE;
+		mc68kTube_CiscOS	= FALSE;
+		mc68kTube_Cumana	= FALSE;
+
+		UpdateSecondProcessorMenu();
 		ResetBeebSystem(MachineType,TubeEnabled,0);
 		break;
 #endif
 
     case IDM_TORCH:
-		TorchTube=1-TorchTube;
-		TubeEnabled=0;
+		TubeEnabled			= 0;
+		AcornZ80			= 0;
+		TorchTube			= 1 - TorchTube;
+        ArmTube				= 0;
 #ifdef M512COPRO_ENABLED
-		Tube186Enabled=0;
+		Tube186Enabled		= 0;
 #endif
-		AcornZ80 = 0;
-        ArmTube = 0;
-        CheckMenuItem(hMenu, IDM_ARM, (ArmTube)?MF_CHECKED:MF_UNCHECKED);
-        CheckMenuItem(hMenu, IDM_TUBE, (TubeEnabled)?MF_CHECKED:MF_UNCHECKED);
-#ifdef M512COPRO_ENABLED
-        CheckMenuItem(hMenu, IDM_TUBE186, (Tube186Enabled)?MF_CHECKED:MF_UNCHECKED);
-#endif
-		CheckMenuItem(hMenu, IDM_TORCH, (TorchTube)?MF_CHECKED:MF_UNCHECKED);
-		CheckMenuItem(hMenu, IDM_ACORNZ80, (AcornZ80)?MF_CHECKED:MF_UNCHECKED);
+		mc68kTube_Casper	= FALSE;
+		mc68kTube_CiscOS	= FALSE;
+		mc68kTube_Cumana	= FALSE;
+
+		UpdateSecondProcessorMenu();
 		ResetBeebSystem(MachineType,TubeEnabled,0);
 		break;
     
     case IDM_ACORNZ80:
-		AcornZ80=1-AcornZ80;
-		TubeEnabled=0;
-		TorchTube=0;
+		TubeEnabled			= 0;
+		AcornZ80			= 1 - AcornZ80;
+		TorchTube			= 0;
+        ArmTube				= 0;
 #ifdef M512COPRO_ENABLED
-		Tube186Enabled=0;
+		Tube186Enabled		= 0;
 #endif
-        ArmTube = 0;
-        CheckMenuItem(hMenu, IDM_ARM, (ArmTube)?MF_CHECKED:MF_UNCHECKED);
-		CheckMenuItem(hMenu, IDM_TUBE, (TubeEnabled)?MF_CHECKED:MF_UNCHECKED);
-#ifdef M512COPRO_ENABLED
-		CheckMenuItem(hMenu, IDM_TUBE186, (Tube186Enabled)?MF_CHECKED:MF_UNCHECKED);
-#endif
-		CheckMenuItem(hMenu, IDM_TORCH, (TorchTube)?MF_CHECKED:MF_UNCHECKED);
-		CheckMenuItem(hMenu, IDM_ACORNZ80, (AcornZ80)?MF_CHECKED:MF_UNCHECKED);
+		mc68kTube_Casper	= FALSE;
+		mc68kTube_CiscOS	= FALSE;
+		mc68kTube_Cumana	= FALSE;
+
+		UpdateSecondProcessorMenu();
 		ResetBeebSystem(MachineType,TubeEnabled,0);
 		break;
 

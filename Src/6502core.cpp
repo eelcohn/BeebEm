@@ -50,6 +50,10 @@ Boston, MA  02110-1301, USA.
 #include "ide.h"
 #include "debug.h"
 #include "Arm.h"
+#include "peripherals/copro_casper.h"		// Included for the mc68kTube_Casper variable
+#include "peripherals/copro_ciscos.h"		// Included for the mc68kTube_CiscOS variable
+#include "peripherals/copro_cumana.h"		// Included for the mc68kTube_Cumana variable
+
 
 #ifdef WIN32
 #define INLINE inline
@@ -70,6 +74,9 @@ static int CurrentInstruction;
 
 extern int DumpAfterEach;
 extern CArm *arm;
+extern copro_casper *obj_copro_casper;	// Defined in beebwin.cpp
+extern copro_ciscos *obj_copro_ciscos;	// Defined in beebwin.cpp
+extern copro_cumana *obj_copro_cumana;	// Defined in beebwin.cpp
 
 CycleCountT TotalCycles=0;
 
@@ -1171,6 +1178,14 @@ void Exec6502Instruction(void) {
 		{
 			arm->exec(4);
 		}
+		if (mc68kTube_CiscOS)
+			obj_copro_ciscos->Exec(1);
+
+		if (mc68kTube_Cumana)
+			obj_copro_cumana->Exec(1);
+
+		if (mc68kTube_Casper)
+			obj_copro_casper->Exec(1);
 
 #ifdef M512COPRO_ENABLED
 		if (Tube186Enabled)

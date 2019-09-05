@@ -133,6 +133,7 @@ class BeebWin  {
 	void Shutdown();
 
     void UpdateModelType();
+	void UpdateSecondProcessorMenu();
 	void SetSoundMenu(void);
 	void SetPBuff(void);
 	void SetImageName(char *DiscName,char Drive,char DType);

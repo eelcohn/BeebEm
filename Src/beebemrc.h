@@ -380,6 +380,9 @@ Boston, MA  02110-1301, USA.
 #define IDM_1600X1200                   40227
 #define ID_UPRM                         40228
 #define IDM_ARM                         40229
+#define IDM_COPRO_CISCOS                      40235
+#define IDM_COPRO_CUMANA68K                  40237
+#define IDM_COPRO_CASPER68K                  40240
 #define IDM_LOADKEYMAP                  40230
 #define IDM_SAVEKEYMAP                  40231
 #define IDM_AUTOSAVE_PREFS_CMOS         40232

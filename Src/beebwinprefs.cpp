@@ -59,6 +59,10 @@ Boston, MA  02110-1301, USA.
 #include "csw.h"
 #include "serialdevices.h"
 #include "Arm.h"
+#include "peripherals/copro_casper.h"		// Included for the mc68kTube_Casper variable
+#include "peripherals/copro_ciscos.h"		// Included for the mc68kTube_CiscOS variable
+#include "peripherals/copro_cumana.h"		// Included for the mc68kTube_Cumana variable
+
 
 using namespace std;
 
@@ -448,6 +452,15 @@ void BeebWin::LoadPreferences()
 	if (!PrefsGetBinaryValue("ArmTube",&ArmTube,1))
 		ArmTube=0;
 
+	if (!PrefsGetBinaryValue("mc68kTube_Casper",&mc68kTube_Casper,1))
+		mc68kTube_Casper = FALSE;
+
+	if (!PrefsGetBinaryValue("mc68kTube_CiscOS",&mc68kTube_CiscOS,1))
+		mc68kTube_CiscOS = FALSE;
+
+	if (!PrefsGetBinaryValue("mc68kTube_Cumana",&mc68kTube_Cumana,1))
+		mc68kTube_Cumana = FALSE;
+
 	if (!PrefsGetBinaryValue("TorchTube",&TorchTube,1))
 		TorchTube=0;
 
@@ -706,6 +719,9 @@ void BeebWin::SavePreferences(bool saveAll)
 		PrefsSetBinaryValue("SWRAMBoard",&SWRAMBoardEnabled,1);
 
 		PrefsSetBinaryValue("ArmTube",&ArmTube,1);
+		PrefsSetBinaryValue("mc68kTube_Casper",&mc68kTube_Casper,1);
+		PrefsSetBinaryValue("mc68kTube_CiscOS",&mc68kTube_CiscOS,1);
+		PrefsSetBinaryValue("mc68kTube_Cumana",&mc68kTube_Cumana,1);
 		PrefsSetBinaryValue("TorchTube",&TorchTube,1);
 		PrefsSetBinaryValue("AcornZ80",&AcornZ80,1);
 		PrefsSetBinaryValue("TubeEnabled",&TubeEnabled,1);

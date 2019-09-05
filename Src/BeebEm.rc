@@ -665,16 +665,19 @@ BEGIN
             MENUITEM "Native &8271",                ID_8271
             MENUITEM "&Select FDC Board...",        ID_FDC_DLL
         END
-        POPUP "&Second Processor"
-        BEGIN
-            MENUITEM "65C02 &Second Processor",     IDM_TUBE
+		POPUP "&Second Processor"
+		BEGIN
+            MENUITEM "Acorn 65C02 &Second Processor",	IDM_TUBE
+            MENUITEM "Acorn ARM Second Processor",		IDM_ARM
 #ifdef M512COPRO_ENABLED
-            MENUITEM "&Master 512 Second Processor", IDM_TUBE186
+            MENUITEM "&Master 512 Second Processor",	IDM_TUBE186
 #endif
-            MENUITEM "Acorn Z80 Second Processor",  IDM_ACORNZ80
-            MENUITEM "Torch &Z80 Second Processor", IDM_TORCH
-            MENUITEM "ARM Second Processor",        IDM_ARM
-        END
+            MENUITEM "Acorn Z80 Second Processor",		IDM_ACORNZ80
+            MENUITEM "Torch &Z80 Second Processor",		IDM_TORCH
+			MENUITEM "Casper 68000 Second Processor",	IDM_COPRO_CASPER68K
+			MENUITEM "CiscOS Second Processor",			IDM_COPRO_CISCOS
+			MENUITEM "Cumana 68008 Second Processor",	IDM_COPRO_CUMANA68K
+		END
         MENUITEM SEPARATOR
         POPUP "&Allow SW RAM Write"
         BEGIN

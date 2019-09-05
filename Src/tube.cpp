@@ -38,6 +38,7 @@ Boston, MA  02110-1301, USA.
 #include "z80mem.h"
 #include "z80.h"
 #include "Arm.h"
+#include "peripherals/copro_ciscos.h"
 
 #ifdef WIN32
 #include <windows.h>
@@ -366,11 +367,7 @@ void WriteTorchTubeFromParasiteSide(unsigned char IOAddr,unsigned char IOData)
 unsigned char ReadTubeFromHostSide(unsigned char IOAddr) {
 	unsigned char TmpData,TmpCntr;
 
-	if (! (EnableTube ||
-#ifdef M512COPRO_ENABLED
-		   Tube186Enabled ||
-#endif
-		   AcornZ80 || ArmTube) ) 
+	if (! (EnableTube || AcornZ80 || ArmTube || mc68kTube_CiscOS) ) 
 		return(MachineType==3 ? 0xff : 0xfe); // return ff for master else return fe
 
 	switch (IOAddr) {
@@ -440,7 +437,7 @@ void WriteTubeFromHostSide(unsigned char IOAddr,unsigned char IOData) {
 #ifdef M512COPRO_ENABLED
 		   Tube186Enabled ||
 #endif
-		   AcornZ80 || ArmTube) ) 
+		   AcornZ80 || ArmTube || mc68kTube_CiscOS) ) 
 		return;
 
 	if (DebugEnabled) {

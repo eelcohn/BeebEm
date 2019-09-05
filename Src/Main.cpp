@@ -73,7 +73,7 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 
     tlog = NULL;
 
-//  tlog = fopen("\\trace.log", "wt");
+  tlog = fopen("C:\\Users\\Virustest\\Desktop\\BeebEm414_mc68k\\BeebEm\\trace.log", "wt");
 
     mainWin=new BeebWin();
 	mainWin->Initialise();
@@ -136,8 +136,8 @@ char buff[256];
 	    va_end(argptr);
 
         GetLocalTime(&tim);
-        fprintf(tlog, "[%02d-%3s-%02d %02d:%02d:%02d.%03d] ", 
-	        tim.wDay, mon[tim.wMonth - 1], tim.wYear % 100, tim.wHour, tim.wMinute, tim.wSecond, tim.wMilliseconds);
+//        fprintf(tlog, "[%02d-%3s-%02d %02d:%02d:%02d.%03d] ", 
+//	        tim.wDay, mon[tim.wMonth - 1], tim.wYear % 100, tim.wHour, tim.wMinute, tim.wSecond, tim.wMilliseconds);
         
         fprintf(tlog, "%s", buff);
     }

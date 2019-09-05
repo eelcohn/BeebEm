@@ -1,3 +1,18 @@
+# .gitignore file for BeebEm
+
+# Generic files to ignore
+*.log
+
+# Windows files to ignore
+BeebEm.ilk
+src/platforms/windows/Debug/
+src/platforms/windows/BeebEm.ncb
+src/platforms/windows/BeebEm.suo
+src/platforms/windows/BeebEm.vcproj.*.user
+
+# GCC files to ignore
+*.o
+
 # Prerequisites
 *.d
 
@@ -27,6 +42,5 @@
 *.lib
 
 # Executables
-*.exe
 *.out
 *.app
