@@ -37,32 +37,40 @@ Written by Richard Gellman - Feb 2001
 #include "z80.h"
 #include "beebsound.h"
 
+#include "DiscDrive.h"
+#include "Diskette.h"
+
 extern FILE *tlog;
 extern int trace;
 
 // Control/Status Register, Track, Sector, and Data Registers
-unsigned char FormatBuffer[2048];
-unsigned char *FormatPtr;
-unsigned char FormatState=0;
-unsigned int FormatCount=0;
-unsigned int FormatSize=0;
-unsigned char Status=0;
-unsigned char Data=0;
-unsigned char Track=0,ATrack=0;
-unsigned char Sector;
+unsigned char	FormatBuffer[2048];
+unsigned char	*FormatPtr;
+unsigned char	FormatState=0;
+unsigned int	FormatCount=0;
+unsigned int	FormatSize=0;
+unsigned char FDC_StatusReg=0;
+unsigned char FDC_DataReg=0;
+unsigned char FDC_TrackReg=0,ATrack=0;
+unsigned char FDC_SectorReg;
 unsigned char HeadDir=1; // Head Movement direction - 1 to step in
 unsigned char FDCommand=0,NFDCommand=0; // NFD is used as "Next command" during spin up/settling periods
 int LoadingCycles=0; // Spin up/settle counter in CPU Cycles
 int SpinDown[2]={0,0}; // Spin down delay per drive
 // The following are control bits
-unsigned char UpdateTrack=0;
-unsigned char MultiSect=0;
-const unsigned char StepRate[4]={6,12,20,30};
-unsigned char CStepRate=StepRate[0];
-unsigned char ESpinUp=0;
-unsigned char EVerify=0;
-bool LightsOn[2]={FALSE,FALSE};
-bool HeadLoaded[2]={FALSE,FALSE};
+unsigned char FDC_UpdateTrack_flag=0;
+unsigned char FDC_MultiSector_flag=0;
+const unsigned char StepRate[5][4]=	{{6,12,20,30},	// WD1770 step rate in ms // Eelco
+									{6,6,10,20},	// WD1771 step rate in ms
+									{2,3,5,6},		// WD1772 step rate in ms
+									{6,12,20,30},	// WD1773 step rate in ms
+									{3,6,10,15}};	// WD2791 step rate in ms (used in Opus DDOS)
+unsigned char CStepRate=StepRate[0][0];	// Eelco
+unsigned char FDC_NoSpinUp_flag=0;
+unsigned char FDC_VerifyDestn_flag=0;
+unsigned char FDC_StepRates_flag=0;
+//bool LightsOn[2]={FALSE,FALSE}; Eelco
+//bool HeadLoaded[2]={FALSE,FALSE}; Eelco
 // End of control bits
 int ByteCount=0;
 long DataPos;
@@ -113,48 +121,215 @@ bool InvertTR00; // Needed because the bloody stupid watford board inverts the i
 
 FILE *sectlog;
 
-static void SetStatus(unsigned char bit) {
-	Status|=1<<bit;
+static void FDC_StatusReg_SetBit(unsigned char bit) {
+	FDC_StatusReg|=1<<bit;
 }
 
-static void ResetStatus(unsigned char bit) {
-	Status&=~(1<<bit);
+static void FDC_StatusReg_ClearBit(unsigned char bit) {
+	FDC_StatusReg&=~(1<<bit);
 }
+
+unsigned char wd1770::ReadFDCRegister(unsigned char Register) {
+	return (Read1770Register(Register));
+}
+
+void wd1770::WriteFDCRegister(unsigned char Register, unsigned char Value) {
+	Write1770Register(Register, Value);
+}
+
+unsigned char wd1770::ReadControlRegister(void) {
+	return(ExtControl);
+}
+
+void wd1770::WriteControlRegister(unsigned char Value) {
+	WriteFDCControlReg(Value);
+}
+
+char wd1770::GetFDCControlParams(char Option) {
+	switch (MachineType) {
+		case 0:											// BBC B (with or without FDC board)
+		case 1:											// BBC B with Integra (with or without FDC board)
+			switch (wd1770::FDCBoard) {
+				case (ACORN) :
+					switch (Option) {
+						case DRIVE:
+							if ((ExtControl & 0x03)==1)
+								return (0);
+							if ((ExtControl & 0x03)==2)
+								return (1);
+							return (-1);
+							break;
+						case SIDE:
+							return ((ExtControl & 0x04) >> 2);
+							break;
+						case DENSITY:
+							return ((ExtControl & 0x08) >> 3);
+							break;
+						case INTERRUPT:
+						case RESET:
+						default:
+							return (-1);
+							break;
+					}
+				case (OPUS2791) :
+					switch (Option) {
+						case DRIVE:
+							return (-1);
+							break;
+						case SIDE:
+							return (-1);
+							break;
+						case DENSITY:
+							return (-1);
+							break;
+						case INTERRUPT:
+						case RESET:
+						default:
+							return (-1);
+							break;
+					}
+				case (OPUSDDOS) :
+					switch (Option) {
+						case DRIVE:
+							return (ExtControl & 0x01);
+							break;
+						case SIDE:
+							return ((ExtControl & 0x02) >> 1);
+							break;
+						case DENSITY:
+							return ((ExtControl & 0x40) >> 6);
+							break;
+						case INTERRUPT:
+						case RESET:
+						default:
+							return (-1);
+							break;
+					}
+				case (SOLIDISK) :
+					switch (Option) {
+						case DRIVE:
+							return (ExtControl & 0x01);
+							break;
+						case SIDE:
+							return ((ExtControl & 0x02) >> 1);
+							break;
+						case DENSITY:
+							return ((ExtControl & 0x04) >> 2);
+							break;
+						case INTERRUPT:
+						case RESET:
+						default:
+							return (-1);
+							break;
+					}
+				default :
+					return (-1);
+					break;
+			}
+		case 2:											// BBC B+
+			switch (Option) {
+				case DRIVE:
+					if ((ExtControl & 0x03)==1)
+						return (0);
+					if ((ExtControl & 0x03)==2)
+						return (1);
+					return (-1);
+					break;
+				case SIDE:
+					return ((ExtControl & 0x04) >> 2);
+					break;
+				case DENSITY:
+					return ((ExtControl & 0x08) >> 3);
+					break;
+				case INTERRUPT:
+					return ((ExtControl & 0x10) >> 4);
+					break;
+				case RESET:
+					return ((ExtControl & 0x20) >> 5);
+					break;
+				default:
+					return (-1);
+					break;
+			}
+			break;
+		case 3:											// BBC Master
+			switch (Option) {
+				case DRIVE:
+					if ((ExtControl & 0x0B)==1)
+						return (0);
+					if ((ExtControl & 0x0B)==2)
+						return (1);
+					if ((ExtControl & 0x0B)==8)
+						return (2);
+					return (-1);
+					break;
+				case SIDE:
+					return ((ExtControl & 0x10) >> 4);
+					break;
+				case DENSITY:
+					return ((ExtControl & 0x20) >> 5);
+					break;
+				case RESET:
+					return ((ExtControl & 0x04) >> 2);
+					break;
+				case INTERRUPT:
+				default:
+					return (-1);
+					break;
+			}
+			break;
+		default:
+			return -1;
+			break;
+	}
+}
+
+
 
 unsigned char Read1770Register(unsigned char Register) {
 	if (!Disc1770Enabled)
 		return 0xFF;
-	// ResetStatus(5);
-	// fprintf(fdclog,"Read of Register %d - Status is %02X\n",Register,Status);
+	// FDC_StatusReg_ClearBit(5);
+	// fprintf(fdclog,"Read of Register %d - Status is %02X\n",Register,FDC_StatusReg);
 	// Read 1770 Register. Note - NOT the FDC Control register @ &FE24
-	if ((FDCommand<6) && (FDCommand!=0)) Status^=2; // Fool anything reading the
+	if ((FDCommand<6) && (FDCommand!=0)) FDC_StatusReg^=2; // Fool anything reading the
 	// Index pulse signal by alternating it on each read.
 	if (Register==0) {
 		NMIStatus &= ~(1<<nmi_floppy);
-		return(Status);
+		return(FDC_StatusReg);
 	}
-	if (Register==1) return(ATrack); 
+	if (Register==1)
+		return(ATrack);
+
 	if (Register==2)
     {
       if ( (DiscType[CurrentDrive] == 3) || (DiscType[CurrentDrive] == 4) )
-         return(Sector + 1);
+         return(FDC_SectorReg + 1);
       else
-         return(Sector);
+         return(FDC_SectorReg);
     }
 
 	if (Register==3) {
 		if (FDCommand>5) 
 		{
-			ResetStatus(1); NMIStatus &= ~(1<<nmi_floppy); 
+			FDC_StatusReg_ClearBit(1);
+			NMIStatus &= ~(1<<nmi_floppy); 
 		}
-		return(Data);
+		return(FDC_DataReg);
 	}
 	return(0);
 }
 
+/*
 void SetMotor(char Drive,bool State) {
+	if (State)
+		DiscDrive::LoadHead(Drive);
+	else
+		DiscDrive::UnloadHead(Drive);
+	return;
+
 	if (Drive==0) LEDs.Disc0=State; else LEDs.Disc1=State;
-	if (State) SetStatus(7);
+	if (State) FDC_StatusReg_SetBit(7);
 	if (State) {
 		if (DiscDriveSoundEnabled && !HeadLoaded[Drive]) {
 			PlaySoundSample(SAMPLE_DRIVE_MOTOR, true);
@@ -170,7 +345,7 @@ void SetMotor(char Drive,bool State) {
 			HeadLoaded[Drive] = FALSE;
 		}
 	}
-}
+}*/
 
 void Write1770Register(unsigned char Register, unsigned char Value) {
 	unsigned char ComBits,HComBits;
@@ -188,310 +363,451 @@ void Write1770Register(unsigned char Register, unsigned char Value) {
 		HComBits=Value & 0xe0;
 		if (HComBits<0x80) {
 			// Type 1 Command
-			SetStatus(0);
-			ResetStatus(3);
-			ResetStatus(4);
-			if (HComBits==0x40) { FDCommand=4; HeadDir=1; UpdateTrack=(Value & 16)>>4; } // Step In
-			if (HComBits==0x60) { FDCommand=5; HeadDir=0; UpdateTrack=(Value & 16)>>4; } // Step Out
-			if (HComBits==0x20) { FDCommand=3; UpdateTrack=(Value & 16)>>4; } // Step
-			if (ComBits==0x10) { FDCommand=2; } // Seek
-			if (ComBits==0) { FDCommand=1; } // Restore (Seek to Track 00)
+			FDC_StatusReg_SetBit(0);
+			FDC_StatusReg_ClearBit(3);
+			FDC_StatusReg_ClearBit(4);
+			if (HComBits==0x40) {  // Step In
+				FDCommand=4;
+				HeadDir=1;
+				FDC_UpdateTrack_flag=(Value & 16)>>4;
+			}
+			if (HComBits==0x60) { // Step Out
+				FDCommand=5;
+				HeadDir=0;
+				FDC_UpdateTrack_flag=(Value & 16)>>4;
+			}
+			if (HComBits==0x20) { // Step
+				FDCommand=3;
+				FDC_UpdateTrack_flag=(Value & 16)>>4;
+			}
+			if (ComBits==0x10)
+				FDCommand=2; // Seek
+			if (ComBits==0)
+				FDCommand=1; // Restore (Seek to Track 00)
 			if (FDCommand<6) { 
-				ResetStatus(5); SetStatus(0); 
+				FDC_StatusReg_ClearBit(5);
+				FDC_StatusReg_SetBit(0); 
 				// Now set some control bits for Type 1 Commands
-				ESpinUp=(Value & 8);
-				EVerify=(Value & 4);
-				CStepRate=StepRate[(Value & 3)]; // Make sure the step rate time is added to the delay time.
-				if (!(Status & 128)) {
-					NFDCommand=FDCommand; FDCommand=11; /* Spin-Up delay */ LoadingCycles=SPIN_UP_TIME; 
-					//if (!ESpinUp) LoadingCycles=ONE_REV_TIME; 
-					SetMotor(CurrentDrive,TRUE);
-					SetStatus(7);
-				} else { LoadingCycles=ONE_REV_TIME; }
+				FDC_NoSpinUp_flag	= (Value & 8);
+				FDC_VerifyDestn_flag= (Value & 4);
+				FDC_StepRates_flag	= (Value & 3);
+				CStepRate=StepRate[0][(Value & 3)]; // Make sure the step rate time is added to the delay time.
+				if (!(FDC_StatusReg & 128)) {
+					NFDCommand=FDCommand;
+					FDCommand=11;
+					LoadingCycles=SPIN_UP_TIME;  /* Spin-Up delay */
+					//if (!FDC_NoSpinUp_flag) LoadingCycles=ONE_REV_TIME; 
+					DiscDrive::LoadHead(CurrentDrive);
+					FDC_StatusReg_SetBit(7);
+				} else
+					LoadingCycles=ONE_REV_TIME;
 				if (DENSITY_MISMATCH) {
 					FDCommand=13; // "Confusion spin"
-					SetStatus(7); SetMotor(CurrentDrive,TRUE);
-					ResetStatus(5); ResetStatus(4); ResetStatus(3); SetStatus(0);
+					FDC_StatusReg_SetBit(7);
+					DiscDrive::LoadHead(CurrentDrive);
+					FDC_StatusReg_ClearBit(5);
+					FDC_StatusReg_ClearBit(4);
+					FDC_StatusReg_ClearBit(3);
+					FDC_StatusReg_SetBit(0);
 					LoadingCycles=ONE_REV_TIME; // Make it about 4 milliseconds
 				}
-
 			}
 		}
 		SectorCycles=0;
-		if (*CDiscOpen && Sector>(RotSect+1))
-			SectorCycles=((ONE_REV_TIME)/MaxSects[CurrentDrive])*((RotSect+1)-Sector);
+		if (*CDiscOpen && FDC_SectorReg>(RotSect+1))
+			SectorCycles=((ONE_REV_TIME)/MaxSects[CurrentDrive])*((RotSect+1)-FDC_SectorReg);
 		if (HComBits==0x80) { // Read Sector
-			RotSect=Sector;
-			SetStatus(0);
-			FDCommand=8; MultiSect=(Value & 16)>>4; 
-			ResetStatus(1);
+			RotSect=FDC_SectorReg;
+			FDC_StatusReg_SetBit(0);
+			FDCommand=8;
+			FDC_MultiSector_flag=(Value & 16)>>4; 
+			FDC_StatusReg_ClearBit(1);
 		}
 		if (HComBits==0xa0) { // Write Sector
-			RotSect=Sector;
-			SetStatus(0);
-			FDCommand=9; MultiSect=(Value & 16)>>4; 
+			RotSect=FDC_SectorReg;
+			FDC_StatusReg_SetBit(0);
+			FDCommand=9;
+			FDC_MultiSector_flag=(Value & 16)>>4; 
 		}
 
-//		if (ComBits==0xe0) { // Read Track		- not implemented yet
-//			Sector = 0;
-//			Track = Data;
-//			RotSect=Sector;
-//			FDCommand=20; MultiSect = 1; 
-//			ResetStatus(1);
-//		}
-
+/*		if (ComBits==0xe0) { // Read Track		- not implemented yet
+			FDC_SectorReg = 0;
+			FDC_TrackReg = FDC_DataReg;
+			RotSect=FDC_SectorReg;
+			FDCommand=20;
+			FDC_MultiSector_flag = 1; 
+			FDC_StatusReg_ClearBit(1);
+		}
+*/
 		if (ComBits==0xf0) { // Write Track
-			Sector = 0;
-			RotSect=Sector;
-			SetStatus(0);
+			FDC_SectorReg = 0;
+			RotSect=FDC_SectorReg;
+			FDC_StatusReg_SetBit(0);
 			FDCommand=21; 
 		}
 
         if (ComBits==0xD0) {
 			// Force Interrupt - Type 4 Command
-			if (FDCommand!=0) {
-				ResetStatus(0);
-			} else {
-				ResetStatus(0); ResetStatus(1); ResetStatus(3); ResetStatus(4); ResetStatus(5);
+			if (FDCommand!=0)
+				FDC_StatusReg_ClearBit(0);
+			else {
+				FDC_StatusReg_ClearBit(0);
+				FDC_StatusReg_ClearBit(1);
+				FDC_StatusReg_ClearBit(3);
+				FDC_StatusReg_ClearBit(4);
+				FDC_StatusReg_ClearBit(5);
 			}
+
 			FDCommand=12;
 			LoadingCycles=4000000;
 			NFDCommand=0; // just in case
-			Data=0; // If this isn't done, the stupid Opus DDOS tries to use the last 
+			FDC_DataReg=0; // If this isn't done, the stupid Opus DDOS tries to use the last 
 			// byte of the last sector read in as a Track number for a seek command.
-			if ((Value & 0xf)) NMIStatus|=1<<nmi_floppy;
+			if ((Value & 0xf))
+				NMIStatus|=1<<nmi_floppy;
 		}
 		if (ComBits==0xc0) {
 			// Read Address - Type 3 Command
 			FDCommand=14;
-			SetStatus(0);
+			FDC_StatusReg_SetBit(0);
 			ByteCount=6;
-			if (!(Status & 128)) {
-				NFDCommand=FDCommand; FDCommand=11; /* Spin-Up delay */ LoadingCycles=SPIN_UP_TIME; 
-				//if (!ESpinUp) LoadingCycles=ONE_REV_TIME; // Make it two seconds instead of one
-				SetMotor(CurrentDrive,TRUE);
-				SetStatus(7);
-			} else { LoadingCycles=SectorCycles; }
+			if (!(FDC_StatusReg & 128)) {
+				NFDCommand=FDCommand;
+				FDCommand=11;
+				LoadingCycles=SPIN_UP_TIME;  /* Spin-Up delay */
+				//if (!FDC_NoSpinUp_flag) LoadingCycles=ONE_REV_TIME; // Make it two seconds instead of one
+				DiscDrive::LoadHead(CurrentDrive);
+				FDC_StatusReg_SetBit(7);
+			} else
+				LoadingCycles=SectorCycles;
 		}
 		if ((FDCommand==8) || (FDCommand==9)) {
-			ResetStatus(1);
+			FDC_StatusReg_ClearBit(1);
 			// Now set some control bits for Type 2 Commands
-			ESpinUp=(Value & 8);
-			EVerify=(Value & 4);
-			if (!(Status & 128)) {
-				NFDCommand=FDCommand; FDCommand=11; /* Spin-Up delay */ LoadingCycles=SPIN_UP_TIME; 
-				//if (ESpinUp) LoadingCycles=ONE_REV_TIME; 
-				SetMotor(CurrentDrive,TRUE);
-				SetStatus(7);
-			} else { LoadingCycles=SectorCycles; }
+			FDC_NoSpinUp_flag		= (Value & 8);
+			FDC_VerifyDestn_flag	= (Value & 4);
+			if (!(FDC_StatusReg & 128)) {
+				NFDCommand=FDCommand;
+				FDCommand=11;
+				LoadingCycles=SPIN_UP_TIME;  /* Spin-Up delay */
+				//if (FDC_NoSpinUp_flag) LoadingCycles=ONE_REV_TIME; 
+				DiscDrive::LoadHead(CurrentDrive);
+				FDC_StatusReg_SetBit(7);
+			} else
+				LoadingCycles=SectorCycles;
+
 			LoadingCycles+=BYTE_TIME;
 			if (DENSITY_MISMATCH) {
 				FDCommand=13; // "Confusion spin"
-				SetStatus(7); SetMotor(CurrentDrive,TRUE);
-				ResetStatus(5); ResetStatus(4); ResetStatus(3); SetStatus(0);
+				FDC_StatusReg_SetBit(7);
+				DiscDrive::LoadHead(CurrentDrive);
+				FDC_StatusReg_ClearBit(5);
+				FDC_StatusReg_ClearBit(4);
+				FDC_StatusReg_ClearBit(3);
+				FDC_StatusReg_SetBit(0);
 				LoadingCycles=ONE_REV_TIME; 
 			}
 		}
 	}
 	if (Register==1) {
-		Track=Value; 
+		FDC_TrackReg=Value; 
 		ATrack=Value;
 	}
 	if (Register==2)
     {
         if ( (DiscType[CurrentDrive] == 3) || (DiscType[CurrentDrive] == 4) )
-		   Sector=Value - 1;
+		   FDC_SectorReg=Value - 1;
 		else
-           Sector=Value;
+           FDC_SectorReg=Value;
     }
 	if (Register==3) {
-		Data=Value;
-		if (FDCommand>5) { ResetStatus(1); NMIStatus &= ~(1<<nmi_floppy); }
+		FDC_DataReg=Value;
+		if (FDCommand>5) {
+			FDC_StatusReg_ClearBit(1);
+			NMIStatus &= ~(1<<nmi_floppy);
+		}
 	}
 }
 
 void Poll1770(int NCycles) {
-  for (int d=0;d<2;d++) {
-	  if (LightsOn[d]) {
-		  SpinDown[d]-=NCycles;
-		  if (SpinDown[d]<=0) {
-			  SetMotor(d,FALSE);
-			  LightsOn[d]=FALSE;
-			  if ((!LightsOn[0]) && (!LightsOn[1])) ResetStatus(7);
-		  }
-	  }
-  }
+	for (int d=0;d<2;d++) {
+		if (drive[d].headloaded) {
+			SpinDown[d]-=NCycles;
+			if (SpinDown[d]<=0) {
+				DiscDrive::UnloadHead(d);
+				drive[d].headloaded=FALSE;
+				if ((!drive[0].headloaded) && (!drive[1].headloaded))
+					FDC_StatusReg_ClearBit(7);
+			}
+		}
+	}
 
-  // This procedure is called from the 6502core to enable the chip to do stuff in the background
-  if ((Status & 1) && (NMILock==0)) {
-    if (FDCommand<6 && *CDiscOpen && (DiscType[CurrentDrive] == 0 && CurrentHead[CurrentDrive] == 1)) {
-      // Single sided disk, disc not ready
-      ResetStatus(0);
-      SetStatus(4);
-      NMIStatus|=1<<nmi_floppy; FDCommand=12;
-      return;
-    }
-	if (FDCommand<6 && *CDiscOpen) {
-		int TracksPassed=0; // Holds the number of tracks passed over by the head during seek
-		unsigned char OldTrack=(Track >= 80 ? 0 : Track);
-		// Seek type commands
-		ResetStatus(4); ResetStatus(3);
-		if (FDCommand==1) { fseek(CurrentDisc,DiscStrt[CurrentDrive],SEEK_SET); Track=0; } // Restore
-		if (FDCommand==2) { fseek(CurrentDisc,DiscStrt[CurrentDrive]+(DiscStep[CurrentDrive]*Data),SEEK_SET); Track=Data;  } // Seek
-		if (FDCommand==4) { HeadDir=1; fseek(CurrentDisc,DiscStep[CurrentDrive],SEEK_CUR); Track++;  } // Step In
-		if (FDCommand==5) { HeadDir=0; fseek(CurrentDisc,-DiscStep[CurrentDrive],SEEK_CUR); Track--;  } // Step Out
-		if (FDCommand==3) { fseek(CurrentDisc,(HeadDir)?DiscStep[CurrentDrive]:-DiscStep[CurrentDrive],SEEK_CUR); Track=(HeadDir)?Track+1:Track-1;  } // Step
-		if ((UpdateTrack) || (FDCommand<3)) ATrack=Track;
-		FDCommand=15; NFDCommand=0;
-		UpdateTrack=0; // This following bit calculates stepping time
-		if (Track>=OldTrack) TracksPassed=Track-OldTrack; else TracksPassed=OldTrack-Track;
-		OldTrack=Track;
-		RotSect=0;
-		// Add track * (steprate * 1000) to LoadingCycles
-		LoadingCycles=(TracksPassed*(CStepRate*1000));
-		LoadingCycles+=((EVerify)?VERIFY_TIME:0);
-		if (DiscDriveSoundEnabled) {
-			if (TracksPassed > 1) {
-				PlaySoundSample(SAMPLE_HEAD_SEEK, true);
-				LoadingCycles=TracksPassed*SAMPLE_HEAD_SEEK_CYCLES_PER_TRACK;
-			}
-			else if (TracksPassed == 1) {
-				PlaySoundSample(SAMPLE_HEAD_STEP, false);
-				LoadingCycles = SAMPLE_HEAD_STEP_CYCLES;
-			}
-		}
-		return;
-	}
-	if (FDCommand==15) {
-		LoadingCycles-=NCycles;
-		if (LoadingCycles<=0) {
-			StopSoundSample(SAMPLE_HEAD_SEEK);
-			LoadingCycles=SPIN_DOWN_TIME;
+	// This procedure is called from the 6502core to enable the chip to do stuff in the background
+	if ((FDC_StatusReg & 1) && (NMILock==0)) {
+		if (FDCommand<6 && *CDiscOpen && (DiscType[CurrentDrive] == 0 && CurrentHead[CurrentDrive] == 1)) {
+			// Single sided disk, disc not ready
+			FDC_StatusReg_ClearBit(0);
+			FDC_StatusReg_SetBit(4);
+			NMIStatus|=1<<nmi_floppy;
 			FDCommand=12;
-			NMIStatus|=1<<nmi_floppy; 
-			if (InvertTR00) { if (Track!=0) ResetStatus(2); else SetStatus(2); }
-			else { if (Track==0) ResetStatus(2); else SetStatus(2); }
-			ResetStatus(5); ResetStatus(0);
+			return;
 		}
-		return;
-	}
-	if (FDCommand<6 && !*CDiscOpen) {
-		// Disc not ready, return seek error;
-		ResetStatus(0);
-		SetStatus(4);
-		NMIStatus|=1<<nmi_floppy; FDCommand=12;
-		return;
-	}
-	if (FDCommand==6) { // Read
-		LoadingCycles-=NCycles; if (LoadingCycles>0) return;
-		if ((Status & 2)==0) { 
+		if (FDCommand<6 && *CDiscOpen) {
+			int TracksPassed=0; // Holds the number of tracks passed over by the head during seek
+			unsigned char OldTrack=(FDC_TrackReg >= 80 ? 0 : FDC_TrackReg);
+			// Seek type commands
+			FDC_StatusReg_ClearBit(4);
+			FDC_StatusReg_ClearBit(3);
+			if (FDCommand==1) { fseek(CurrentDisc,disc[CurrentDrive].side[CurrentHead[CurrentDrive]].track[0].sector[0].data,SEEK_SET); FDC_TrackReg=0; } // Restore
+			if (FDCommand==2) { fseek(CurrentDisc,disc[CurrentDrive].side[CurrentHead[CurrentDrive]].track[FDC_DataReg].sector[0].data,SEEK_SET); FDC_TrackReg=FDC_DataReg;  } // Seek
+			if (FDCommand==4) { HeadDir=1; fseek(CurrentDisc,disc[CurrentDrive].side[CurrentHead[CurrentDrive]].track[drive[CurrentDrive].headpos+1].sector[0].data,SEEK_SET); FDC_TrackReg++;  } // Step In
+			if (FDCommand==5) { HeadDir=0; fseek(CurrentDisc,disc[CurrentDrive].side[CurrentHead[CurrentDrive]].track[drive[CurrentDrive].headpos-1].sector[0].data,SEEK_SET); FDC_TrackReg--;  } // Step Out
+			if (FDCommand==3) { fseek(CurrentDisc,disc[CurrentDrive].side[CurrentHead[CurrentDrive]].track[drive[CurrentDrive].headpos+(HeadDir)?DiscStep[CurrentDrive]:-DiscStep[CurrentDrive]].sector[0].data,SEEK_SET); FDC_TrackReg=(HeadDir)?FDC_TrackReg+1:FDC_TrackReg-1;  } // Step
+		
+			if ((FDC_UpdateTrack_flag) || (FDCommand<3))
+				ATrack=FDC_TrackReg;
+			FDCommand=15;
 			NFDCommand=0;
-			ResetStatus(4); ResetStatus(5); ResetStatus(3); ResetStatus(2);
-			ByteCount--;
-			// If reading a single sector, and ByteCount== :-
-			// 256..1: read + DRQ (256x)
-			//      0: INTRQ + rotate disc
-			// If reading multiple sectors, and ByteCount== :-
-			// 256..2: read + DRQ (255x)
-			//      1: read + DRQ + rotate disc + go back to 256
-			if (ByteCount>0 && !feof(CurrentDisc)) { Data=fgetc(CurrentDisc); SetStatus(1); NMIStatus|=1<<nmi_floppy; } // DRQ
-			if (ByteCount==0 || ((ByteCount==1) && (MultiSect))) RotSect++; if (RotSect>MaxSects[CurrentDrive]) RotSect=0;
-			if ((ByteCount==0) && (!MultiSect)) { ResetStatus(0); NMIStatus|=1<<nmi_floppy; fseek(CurrentDisc,HeadPos[CurrentDrive],SEEK_SET); FDCommand=10; ResetStatus(1); } // End of sector
-			if ((ByteCount==1) && (MultiSect)) { ByteCount=SecSize[CurrentDrive]+1; Sector++; 
-				if (Sector==MaxSects[CurrentDrive]) { MultiSect=0; /* Sector=0; */ }
+			FDC_UpdateTrack_flag=0; // This following bit calculates stepping time
+			if (FDC_TrackReg>=OldTrack)
+				TracksPassed=FDC_TrackReg-OldTrack;
+			else
+				TracksPassed=OldTrack-FDC_TrackReg;
+			OldTrack=FDC_TrackReg;
+			RotSect=0;
+			// Add track * (steprate * 1000) to LoadingCycles
+			LoadingCycles=(TracksPassed*(CStepRate*1000));
+			LoadingCycles+=((FDC_VerifyDestn_flag)?VERIFY_TIME:0);
+			if (DiscDriveSoundEnabled) {
+				if (TracksPassed > 1) {
+					PlaySoundSample(SAMPLE_HEAD_SEEK, true);
+					LoadingCycles=TracksPassed*SAMPLE_HEAD_SEEK_CYCLES_PER_TRACK;
+				}
+				else if (TracksPassed == 1) {
+					PlaySoundSample(SAMPLE_HEAD_STEP, false);
+					LoadingCycles = SAMPLE_HEAD_STEP_CYCLES;
+				}
+			}
+			return;
+		}
+		if (FDCommand==15) {
+			LoadingCycles-=NCycles;
+			if (LoadingCycles<=0) {
+				StopSoundSample(SAMPLE_HEAD_SEEK);
+				LoadingCycles=SPIN_DOWN_TIME;
+				FDCommand=12;
+				NMIStatus|=1<<nmi_floppy; 
+				if (InvertTR00)
+					if (FDC_TrackReg!=0)
+						FDC_StatusReg_ClearBit(2);
+					else
+						FDC_StatusReg_SetBit(2);
+				else
+					if (FDC_TrackReg==0)
+						FDC_StatusReg_ClearBit(2);
+					else
+						FDC_StatusReg_SetBit(2);
+				FDC_StatusReg_ClearBit(5);
+				FDC_StatusReg_ClearBit(0);
+			}
+			return;
+		}
+		if (FDCommand<6 && !*CDiscOpen) {
+			// Disc not ready, return seek error;
+			FDC_StatusReg_ClearBit(0);
+			FDC_StatusReg_SetBit(4);
+			NMIStatus|=1<<nmi_floppy;
+			FDCommand=12;
+			return;
+		}
+		if (FDCommand==6) { // Read
+			LoadingCycles-=NCycles; if (LoadingCycles>0) return;
+			if ((FDC_StatusReg & 2)==0) { // Check if data register has been emptied
+				NFDCommand=0;
+				FDC_StatusReg_ClearBit(4); // Record has been found
+				FDC_StatusReg_ClearBit(5); // Normal data
+				FDC_StatusReg_ClearBit(3); // No crc error
+				FDC_StatusReg_ClearBit(2); // No lost data
+				ByteCount--;
+				// If reading a single sector, and ByteCount== :-
+				// 256..1: read + DRQ (256x)
+				//      0: INTRQ + rotate disc
+				// If reading multiple sectors, and ByteCount== :-
+				// 256..2: read + DRQ (255x)
+				//      1: read + DRQ + rotate disc + go back to 256
+				if (ByteCount>0 && !feof(CurrentDisc)) {
+					FDC_DataReg=fgetc(CurrentDisc);
+					FDC_StatusReg_SetBit(1);
+					NMIStatus|=1<<nmi_floppy;
+				} // DRQ
+				if (ByteCount==0 || ((ByteCount==1) && (FDC_MultiSector_flag)))
+					RotSect++;
+				if (RotSect>MaxSects[CurrentDrive])
+					RotSect=0;
+				if ((ByteCount==0) && (!FDC_MultiSector_flag)) {
+					FDC_StatusReg_ClearBit(0); // Clear Busy flag
+					NMIStatus|=1<<nmi_floppy;
+					fseek(CurrentDisc,HeadPos[CurrentDrive],SEEK_SET);
+					FDCommand=10;
+					FDC_StatusReg_ClearBit(1);
+				} // End of sector
+				if ((ByteCount==1) && (FDC_MultiSector_flag)) {
+					ByteCount=disc[CurrentDisc].side[CurrentHead[CurrentDrive]].track[drive[CurrentDrive].headpos].sectorsize+1;
+					FDC_SectorReg++; 
+					if (FDC_SectorReg==MaxSects[CurrentDrive]) {
+						FDC_MultiSector_flag=0;
+						/* FDC_SectorReg=0; */
+					}
+				}
+				LoadingCycles=BYTE_TIME; // Slow down the read a bit :)
+			}
+			return;
+		}
+		if ((FDCommand==7) && (DWriteable[CurrentDrive]==1)) { // Write
+			LoadingCycles-=NCycles;
+			if (LoadingCycles>0)
+				return;
+			if ((FDC_StatusReg & 2)==0) { 
+				// DRQ already issued and answered
+				NFDCommand=0;
+				FDC_StatusReg_ClearBit(4);
+				FDC_StatusReg_ClearBit(5);
+				FDC_StatusReg_ClearBit(3);
+				FDC_StatusReg_ClearBit(2); 
+				ByteCount--;
+				// If writing a single sector, and ByteCount== :-
+				// 256..2: write + next DRQ (255x)
+				//      1: write + INTRQ + rotate disc
+				// If writing multiple sectors, and ByteCount== :-
+				// 256..2: write + next DRQ (255x)
+				//      1: write + next DRQ + rotate disc + go back to 256
+				fputc(FDC_DataReg,CurrentDisc);
+
+				if ((ByteCount>1) || (FDC_MultiSector_flag)) {
+					FDC_StatusReg_SetBit(1);
+					NMIStatus|=1<<nmi_floppy;
+				} // DRQ
+
+				if (ByteCount<=1)
+					RotSect++;
+				if (RotSect>MaxSects[CurrentDrive])
+					RotSect=0;
+				if ((ByteCount<=1) && (!FDC_MultiSector_flag)) {
+					FDC_StatusReg_ClearBit(0);
+					NMIStatus|=1<<nmi_floppy;
+					fseek(CurrentDisc,HeadPos[CurrentDrive],SEEK_SET);
+					FDCommand=10;
+					FDC_StatusReg_ClearBit(1);
+				}
+				if ((ByteCount<=1) && (FDC_MultiSector_flag)) {
+					ByteCount=disc[CurrentDisc].side[CurrentHead[CurrentDrive]].track[drive[CurrentDrive].headpos].sectorsize+1;
+					FDC_SectorReg++; 
+					if (FDC_SectorReg==MaxSects[CurrentDrive]) {
+						FDC_MultiSector_flag=0;
+						/* FDC_SectorReg=0; */
+					}
+				}
+				LoadingCycles=BYTE_TIME; // Bit longer for a write
+			} 
+			return;
+		}
+		if ((FDCommand==7) && (DWriteable[CurrentDrive]==0)) {
+	 //		FDC_StatusReg_ClearBit(0);
+			FDC_StatusReg_SetBit(6);
+			NMIStatus|=1<<nmi_floppy; 
+			FDCommand=0;
+		}
+		if ((FDCommand>=8) && (*CDiscOpen==1) && (FDCommand<=10)) { // Read/Write Prepare
+			FDC_StatusReg_SetBit(0);
+			FDC_StatusReg_ClearBit(5);
+			FDC_StatusReg_ClearBit(6);
+			FDC_StatusReg_ClearBit(2);
+			ByteCount=disc[CurrentDisc].side[CurrentHead[CurrentDrive]].track[drive[CurrentDrive].headpos].sectorsize+1;
+			DataPos=ftell(CurrentDisc);
+			HeadPos[CurrentDrive]=DataPos;
+			LoadingCycles=45;
+			fseek(CurrentDisc,disc[CurrentDrive&1].side[(CurrentDrive&2)>>1].track[FDC_TrackReg].sector[FDC_SectorReg].data,SEEK_SET);
+		}
+		if ((FDCommand>=8) && (*CDiscOpen==0) && (FDCommand<=9)) {
+			FDC_StatusReg_ClearBit(0);
+			FDC_StatusReg_SetBit(4);
+			NMIStatus|=1<<nmi_floppy;
+			FDCommand=0;
+		}
+		if ((FDCommand==8) && (*CDiscOpen==1))
+			FDCommand=6;
+		if ((FDCommand==9) && (*CDiscOpen==1)) {
+			FDCommand=7;
+			FDC_StatusReg_SetBit(1);
+			NMIStatus|=1<<nmi_floppy;
+		}
+	}
+  
+// Not implemented Read Track yet, perhaps don't really need it
+/*
+	if (FDCommand==22) { // Read Track
+		LoadingCycles-=NCycles;
+		if (LoadingCycles>0)
+			return;
+		if ((dStatus & 2)==0) { 
+			NFDCommand=0;
+			FDC_StatusReg_ClearBit(4);
+			FDC_StatusReg_ClearBit(5);
+			FDC_StatusReg_ClearBit(3);
+			FDC_StatusReg_ClearBit(2);
+			if (!feof(CurrentDisc)) {
+				FDC_DataReg=fgetc(CurrentDisc);
+				FDC_StatusReg_SetBit(1);
+				NMIStatus|=1<<nmi_floppy;
+			} // DRQ
+			dByteCount--;
+			if (dByteCount==0) RotSect++; if (RotSect>MaxSects[CurrentDrive]) RotSect=0;
+			if ((dByteCount==0) && (!FDC_MultiSector_flag)) {
+				FDC_StatusReg_ClearBit(0);
+				NMIStatus|=1<<nmi_floppy;
+				fseek(CurrentDisc,HeadPos[CurrentDrive],SEEK_SET);
+				FDCommand=10;
+			} // End of sector
+			if ((dByteCount==0) && (FDC_MultiSector_flag)) { dByteCount=257; FDC_SectorReg++; 
+				if (FDC_SectorReg==MaxSects[CurrentDrive]) {
+					FDC_MultiSector_flag=0;
+					// FDC_SectorReg=0;
+				}
 			}
 			LoadingCycles=BYTE_TIME; // Slow down the read a bit :)
 		}
 		return;
 	}
-	if ((FDCommand==7) && (DWriteable[CurrentDrive]==1)) { // Write
-		LoadingCycles-=NCycles; if (LoadingCycles>0) return;
-		if ((Status & 2)==0) { 
-			// DRQ already issued and answered
-			NFDCommand=0;
-			ResetStatus(4); ResetStatus(5); ResetStatus(3); ResetStatus(2); 
-			ByteCount--;
-			// If writing a single sector, and ByteCount== :-
-			// 256..2: write + next DRQ (255x)
-			//      1: write + INTRQ + rotate disc
-			// If writing multiple sectors, and ByteCount== :-
-			// 256..2: write + next DRQ (255x)
-			//      1: write + next DRQ + rotate disc + go back to 256
-			fputc(Data,CurrentDisc);
-			if ((ByteCount>1) || (MultiSect)) { SetStatus(1); NMIStatus|=1<<nmi_floppy; } // DRQ
-			if (ByteCount<=1) RotSect++; if (RotSect>MaxSects[CurrentDrive]) RotSect=0;
-			if ((ByteCount<=1) && (!MultiSect)) { ResetStatus(0); NMIStatus|=1<<nmi_floppy; fseek(CurrentDisc,HeadPos[CurrentDrive],SEEK_SET); FDCommand=10; ResetStatus(1); }
-			if ((ByteCount<=1) && (MultiSect)) { ByteCount=SecSize[CurrentDrive]+1; Sector++; 
-				if (Sector==MaxSects[CurrentDrive]) { MultiSect=0; /* Sector=0; */ }
-			}
-			LoadingCycles=BYTE_TIME; // Bit longer for a write
-		} 
-		return;
-	}
-	if ((FDCommand==7) && (DWriteable[CurrentDrive]==0)) {
- //		ResetStatus(0);
-		SetStatus(6);
-		NMIStatus|=1<<nmi_floppy; 
-        FDCommand=0;
-	}
-	if ((FDCommand>=8) && (*CDiscOpen==1) && (FDCommand<=10)) { // Read/Write Prepare
-		SetStatus(0);
-		ResetStatus(5); ResetStatus(6); ResetStatus(2);
-		ByteCount=SecSize[CurrentDrive]+1; DataPos=ftell(CurrentDisc); HeadPos[CurrentDrive]=DataPos;
-		LoadingCycles=45;
-		fseek(CurrentDisc,DiscStrt[CurrentDrive]+(DiscStep[CurrentDrive]*Track)+(Sector*SecSize[CurrentDrive]),SEEK_SET);
-	}
-	if ((FDCommand>=8) && (*CDiscOpen==0) && (FDCommand<=9)) {
-		ResetStatus(0);
-		SetStatus(4);
-		NMIStatus|=1<<nmi_floppy; FDCommand=0;
-	}
-	if ((FDCommand==8) && (*CDiscOpen==1)) FDCommand=6;
-	if ((FDCommand==9) && (*CDiscOpen==1)) { FDCommand=7; SetStatus(1); NMIStatus|=1<<nmi_floppy; }
-  }
-  
-// Not implemented Read Track yet, perhaps don't really need it
-
-//	if (FDCommand==22) { // Read Track
-//		LoadingCycles-=NCycles; if (LoadingCycles>0) return;
-//		if ((dStatus & 2)==0) { 
-//			NFDCommand=0;
-//			ResetStatus(4); ResetStatus(5); ResetStatus(3); ResetStatus(2);
-//			if (!feof(CurrentDisc)) { Data=fgetc(CurrentDisc); SetStatus(1); NMIStatus|=1<<nmi_floppy; } // DRQ
-//			dByteCount--;
-//			if (dByteCount==0) RotSect++; if (RotSect>MaxSects[CurrentDrive]) RotSect=0;
-//			if ((dByteCount==0) && (!MultiSect)) { ResetStatus(0); NMIStatus|=1<<nmi_floppy; fseek(CurrentDisc,HeadPos[CurrentDrive],SEEK_SET); FDCommand=10; } // End of sector
-//			if ((dByteCount==0) && (MultiSect)) { dByteCount=257; Sector++; 
-//				if (Sector==MaxSects[CurrentDrive]) { MultiSect=0; /* Sector=0; */ }
-//			}
-//			LoadingCycles=BYTE_TIME; // Slow down the read a bit :)
-//		}
-//		return;
-//	}
-
+*/
 	if ((FDCommand==23) && (DWriteable[CurrentDrive]==1)) { // Write Track
-		LoadingCycles-=NCycles; if (LoadingCycles>0) return;
-		if ((Status & 2)==0) { 
+		LoadingCycles-=NCycles;
+		if (LoadingCycles>0)
+			return;
+
+		if ((FDC_StatusReg & 2)==0) { 
 
 //            if (ByteCount == 0)
-//                fprintf(tlog, "Formatting Track %d, Sector %d\n", Track, Sector);
+//                fprintf(tlog, "Formatting Track %d, Sector %d\n", FDC_TrackReg, FDC_SectorReg);
 
             NFDCommand=0;
-			ResetStatus(4); ResetStatus(5); ResetStatus(3); ResetStatus(2); 
+			FDC_StatusReg_ClearBit(4);
+			FDC_StatusReg_ClearBit(5);
+			FDC_StatusReg_ClearBit(3);
+			FDC_StatusReg_ClearBit(2); 
 
-            SetStatus(1);
+            FDC_StatusReg_SetBit(1);
             NMIStatus|=1<<nmi_floppy; // DRQ
 
             switch (FormatState)
             {
             case 0x00 :
                 FormatPtr = FormatBuffer;
-                *FormatPtr++ = Data;
+                *FormatPtr++ = FDC_DataReg;
                 FormatState++;
                 break;
             case 0x01 :
-                *FormatPtr++ = Data;
-                if (Data == 0xfb)       // Data Marker
+                *FormatPtr++ = FDC_DataReg;
+                if (FDC_DataReg == 0xfb)       // Data Marker
                 {
                     FormatState++;
                     FormatCount = 0;
@@ -536,22 +852,22 @@ void Poll1770(int NCycles) {
             case 0x02 :                 // Sector contents
                 if (FormatCount < FormatSize)
                 {
-                    fputc(Data,CurrentDisc);
+                    fputc(FDC_DataReg,CurrentDisc);
                     FormatCount++;
                 }
                 else
                 {
                     FormatState++;
                     FormatCount = 0;
-                    Sector++;
+                    FDC_SectorReg++;
 
-    				if (Sector>MaxSects[CurrentDrive]) 
+    				if (FDC_SectorReg>MaxSects[CurrentDrive]) 
                     {
-                        ResetStatus(0);
+                        FDC_StatusReg_ClearBit(0);
                         NMIStatus|=1<<nmi_floppy;
                         fseek(CurrentDisc,HeadPos[CurrentDrive],SEEK_SET);
                         FDCommand=10; 
-                        ResetStatus(1);
+                        FDC_StatusReg_ClearBit(1);
                     }
                 }
 
@@ -570,44 +886,64 @@ void Poll1770(int NCycles) {
 	if ((FDCommand==23) && (DWriteable[CurrentDrive]==0)) 
     {
 //        fprintf(tlog, "Disc Write Protected\n");
-		SetStatus(6);
+		FDC_StatusReg_SetBit(6);
 		NMIStatus|=1<<nmi_floppy; 
         FDCommand=0;
 	}
 
 	if ((FDCommand>=20) && (*CDiscOpen==1) && (FDCommand<=21)) { // Read/Write Track Prepare
-		SetStatus(0);
-		ResetStatus(5); ResetStatus(6); ResetStatus(2);
+		FDC_StatusReg_SetBit(0);
+		FDC_StatusReg_ClearBit(5);
+		FDC_StatusReg_ClearBit(6);
+		FDC_StatusReg_ClearBit(2);
 		LoadingCycles=45;
-		fseek(CurrentDisc,DiscStrt[CurrentDrive]+(DiscStep[CurrentDrive]*Track),SEEK_SET);
-        Sector = 0;
-        ByteCount=0; DataPos=ftell(CurrentDisc); HeadPos[CurrentDrive]=DataPos;
-//        fprintf(tlog, "Read/Write Track Prepare - Disc = %d, Track = %d\n", CurrentDrive, Track);
+		fseek(CurrentDisc,DiscStrt[CurrentDrive]+(DiscStep[CurrentDrive]*FDC_TrackReg),SEEK_SET);
+        FDC_SectorReg = 0;
+        ByteCount=0;
+		DataPos=ftell(CurrentDisc);
+		HeadPos[CurrentDrive]=DataPos;
+//        fprintf(tlog, "Read/Write Track Prepare - Disc = %d, Track = %d\n", CurrentDrive, FDC_TrackReg);
     }
 	if ((FDCommand>=20) && (*CDiscOpen==0) && (FDCommand<=21)) {
 
-//        fprintf(tlog, "ResetStatus(0) Here 8\n");
+//        fprintf(tlog, "FDC_StatusReg_ClearBit(0) Here 8\n");
 
-        ResetStatus(0);
-		SetStatus(4);
-		NMIStatus|=1<<nmi_floppy; FDCommand=0;
+        FDC_StatusReg_ClearBit(0);
+		FDC_StatusReg_SetBit(4);
+		NMIStatus|=1<<nmi_floppy;
+		FDCommand=0;
 	}
-	if ((FDCommand==20) && (*CDiscOpen==1)) FDCommand=22;
-	if ((FDCommand==21) && (*CDiscOpen==1)) { FDCommand=23; FormatState = 0; SetStatus(1); NMIStatus|=1<<nmi_floppy; }
+	if ((FDCommand==20) && (*CDiscOpen==1))
+		FDCommand=22;
+
+	if ((FDCommand==21) && (*CDiscOpen==1)) {
+		FDCommand=23;
+		FormatState = 0;
+		FDC_StatusReg_SetBit(1);
+		NMIStatus|=1<<nmi_floppy;
+	}
   
   if (FDCommand==10) {
-	ResetStatus(0);
-	ResetStatus(4);
-	ResetStatus(5);
-	ResetStatus(6);
+	FDC_StatusReg_ClearBit(0);
+	FDC_StatusReg_ClearBit(4);
+	FDC_StatusReg_ClearBit(5);
+	FDC_StatusReg_ClearBit(6);
 	if (NFDCommand==255) {
 		// Error during access
-		SetStatus(4);
-		ResetStatus(3);
-		if ((Track==0) && (InvertTR00)) SetStatus(2); else ResetStatus(2);
-		if ((Track==0) && (!InvertTR00)) ResetStatus(2); else SetStatus(2);
+		FDC_StatusReg_SetBit(4);
+		FDC_StatusReg_ClearBit(3);
+		if ((FDC_TrackReg==0) && (InvertTR00))
+			FDC_StatusReg_SetBit(2);
+		else
+			FDC_StatusReg_ClearBit(2);
+		if ((FDC_TrackReg==0) && (!InvertTR00))
+			FDC_StatusReg_ClearBit(2);
+		else
+			FDC_StatusReg_SetBit(2);
 	}
-	NMIStatus|=1<<nmi_floppy; FDCommand=12; LoadingCycles=SPIN_DOWN_TIME; // Spin-down delay
+	NMIStatus|=1<<nmi_floppy;
+	FDCommand=12;
+	LoadingCycles=SPIN_DOWN_TIME; // Spin-down delay
 	return;
   }
   if (FDCommand==11) {
@@ -615,67 +951,80 @@ void Poll1770(int NCycles) {
 	LoadingCycles-=NCycles;
 	if (LoadingCycles<=0) {
 		FDCommand=NFDCommand;
-		if (NFDCommand<6) SetStatus(5); else ResetStatus(5);
+		if (NFDCommand<6)
+			FDC_StatusReg_SetBit(5);
+		else
+			FDC_StatusReg_ClearBit(5);
 	}
 	return;
   }
   if (FDCommand==12) { // Spin Down delay
-	  if (EVerify) LoadingCycles+=SETTLE_TIME;
-	  LightsOn[CurrentDrive]=TRUE;
+	  if (FDC_VerifyDestn_flag)
+		  LoadingCycles+=SETTLE_TIME;
+	  drive[CurrentDrive].headloaded=TRUE;
 	  SpinDown[CurrentDrive]=SPIN_DOWN_TIME;
 	  RotSect=0; FDCommand=0;
-	  ResetStatus(0);
+	  FDC_StatusReg_ClearBit(0);
 	  return;
   }
   if (FDCommand==13) { // Confusion spin
 	  LoadingCycles-=NCycles;
-	  if ((LoadingCycles<2000) && (!(Status & 32))) SetStatus(5); // Compelte spin-up, but continuing whirring
-	  if (LoadingCycles<=0) FDCommand=10; NFDCommand=255; // Go to spin down, but report error.
+	  if ((LoadingCycles<2000) && (!(FDC_StatusReg & 32))) FDC_StatusReg_SetBit(5); // Complete spin-up, but continuing whirring
+	  if (LoadingCycles<=0) FDCommand=10;
+	  NFDCommand=255; // Go to spin down, but report error.
 	  SpinDown[CurrentDrive]=SPIN_DOWN_TIME;
-	  LightsOn[CurrentDrive]=TRUE;
+	  drive[CurrentDrive].headloaded=TRUE;
 	  return;
   }
-  if (FDCommand==14) { // Read Address - just 6 bytes
-	  LoadingCycles-=NCycles; if (LoadingCycles>0) return;
-      if ((Status & 2)==0) { 
+	if (FDCommand==14) { // Read Address - just 6 bytes
+		LoadingCycles-=NCycles;
+		if (LoadingCycles>0)
+			return;
+		if ((FDC_StatusReg & 2)==0) { 
+			NFDCommand=0;
+			FDC_StatusReg_ClearBit(4);
+			FDC_StatusReg_ClearBit(5);
+			FDC_StatusReg_ClearBit(3);
+			FDC_StatusReg_ClearBit(2);
 
-      NFDCommand=0;
-      ResetStatus(4); ResetStatus(5); ResetStatus(3); ResetStatus(2);
-
-      if (ByteCount==6) Data=Track;
-      if (ByteCount==5) Data=CurrentHead[CurrentDrive];
-      if (ByteCount==4) Data=RotSect+1;
-      if (ByteCount==3) {
-          if (DiscType[CurrentDrive] == 0) Data = 1;        // 256
-          if (DiscType[CurrentDrive] == 1) Data = 1;        // 256
-          if (DiscType[CurrentDrive] == 2) Data = 1;        // 256
-          if (DiscType[CurrentDrive] == 3) Data = 3;        // 1024
-          if (DiscType[CurrentDrive] == 4) Data = 2;        // 512
-      }
-      if (ByteCount==2) Data=0;
-      if (ByteCount==1) Data=0;
-
-	  if (ByteCount==0) { 
-
-          FDCommand=0; 
-          ResetStatus(0); 
-          RotSect++; 
-		  if (RotSect==(MaxSects[CurrentDrive]+1)) RotSect=0; 
-		  FDCommand=10;
-		  return;
-      }
+			if (ByteCount==6)
+				FDC_DataReg=FDC_TrackReg;
+			if (ByteCount==5)
+				FDC_DataReg=CurrentHead[CurrentDrive];
+			if (ByteCount==4)
+				FDC_DataReg=RotSect+1;
+			if (ByteCount==3) {
+				if (DiscType[CurrentDrive] == 0) FDC_DataReg = 1;        // 256
+				if (DiscType[CurrentDrive] == 1) FDC_DataReg = 1;        // 256
+				if (DiscType[CurrentDrive] == 2) FDC_DataReg = 1;        // 256
+				if (DiscType[CurrentDrive] == 3) FDC_DataReg = 3;        // 1024
+				if (DiscType[CurrentDrive] == 4) FDC_DataReg = 2;        // 512
+			}
+			if (ByteCount==2) FDC_DataReg=0;
+			if (ByteCount==1) FDC_DataReg=0;
+			if (ByteCount==0) { 
+				FDCommand=0;
+				FDC_StatusReg_ClearBit(0);
+				RotSect++;
+				if (RotSect==(MaxSects[CurrentDrive]+1))
+					RotSect=0;
+				FDCommand=10;
+				return;
+			}
         
-      SetStatus(1); 
-	  ByteCount--;
-	  NMIStatus|=1<<nmi_floppy;
-      LoadingCycles=BYTE_TIME; // Slow down the read a bit :)
-    }
+		FDC_StatusReg_SetBit(1);
+		ByteCount--;
+		NMIStatus|=1<<nmi_floppy;
+		LoadingCycles=BYTE_TIME; // Slow down the read a bit :)
+		}
 	return;
-    
-  }
+	}
 }		
 
 void Load1770DiscImage(char *DscFileName,int DscDrive,unsigned char DscType,HMENU dmenu) {
+	Diskette::LoadDiskette(DscFileName,DscDrive,0);
+	return;
+
 	long int TotalSectors;
 	long HeadStore;
 	bool openFailure=false;
@@ -829,9 +1178,9 @@ void Reset1770(void) {
 	DiscStrt[1]=0; 
 	if (Disc0) fseek(Disc0,0,SEEK_SET);
 	if (Disc1) fseek(Disc1,0,SEEK_SET);
-	SetMotor(0,FALSE);
-	SetMotor(1,FALSE);
-	Status=0;
+	DiscDrive::UnloadHead(0);
+	DiscDrive::UnloadHead(1);
+	FDC_StatusReg=0;
 	ExtControl=1; // Drive 0 selected, single density, side 0
 	MaxSects[0]=(DiscType[0]<2)?9:15;
 	MaxSects[1]=(DiscType[1]<2)?9:15;
@@ -842,6 +1191,9 @@ void Reset1770(void) {
 }
 
 void Close1770Disc(char Drive) {
+	Diskette::EjectDisk(Drive, 0);
+	return;
+
 	if ((Drive==0) && (Disc0Open)) {
 		fclose(Disc0);
 		Disc0=NULL;
@@ -929,24 +1281,24 @@ void Save1770UEF(FILE *SUEF)
 		fwrite(CDiscName[1],1,256,SUEF);
 	}
 
-	fputc(Status,SUEF);
-	fputc(Data,SUEF);
-	fputc(Track,SUEF);
+	fputc(FDC_StatusReg,SUEF);
+	fputc(FDC_DataReg,SUEF);
+	fputc(FDC_TrackReg,SUEF);
 	fputc(ATrack,SUEF);
-	fputc(Sector,SUEF);
+	fputc(FDC_SectorReg,SUEF);
 	fputc(HeadDir,SUEF);
 	fputc(FDCommand,SUEF);
 	fputc(NFDCommand,SUEF);
 	fput32(LoadingCycles,SUEF);
 	fput32(SpinDown[0],SUEF);
 	fput32(SpinDown[1],SUEF);
-	fputc(UpdateTrack,SUEF);
-	fputc(MultiSect,SUEF);
+	fputc(FDC_UpdateTrack_flag,SUEF);
+	fputc(FDC_MultiSector_flag,SUEF);
 	fputc(CStepRate,SUEF);
-	fputc(ESpinUp,SUEF);
-	fputc(EVerify,SUEF);
-	fputc(LightsOn[0],SUEF);
-	fputc(LightsOn[1],SUEF);
+	fputc(FDC_NoSpinUp_flag,SUEF);
+	fputc(FDC_VerifyDestn_flag,SUEF);
+	fputc(drive[0].headloaded,SUEF);
+	fputc(drive[1].headloaded,SUEF);
 	fput32(ByteCount,SUEF);
 	fput32(DataPos,SUEF);
 	fputc(ExtControl,SUEF);
@@ -1013,24 +1365,24 @@ void Load1770UEF(FILE *SUEF,int Version)
 
 	if (Loaded && !LoadFailed)
 	{
-		Status=fgetc(SUEF);
-		Data=fgetc(SUEF);
-		Track=fgetc(SUEF);
+		FDC_StatusReg=fgetc(SUEF);
+		FDC_DataReg=fgetc(SUEF);
+		FDC_TrackReg=fgetc(SUEF);
 		ATrack=fgetc(SUEF);
-		Sector=fgetc(SUEF);
+		FDC_SectorReg=fgetc(SUEF);
 		HeadDir=fgetc(SUEF);
 		FDCommand=fgetc(SUEF);
 		NFDCommand=fgetc(SUEF);
 		LoadingCycles=fget32(SUEF);
 		SpinDown[0]=fget32(SUEF);
 		SpinDown[1]=fget32(SUEF);
-		UpdateTrack=fgetc(SUEF);
-		MultiSect=fgetc(SUEF);
+		FDC_UpdateTrack_flag=fgetc(SUEF);
+		FDC_MultiSector_flag=fgetc(SUEF);
 		CStepRate=fgetc(SUEF);
-		ESpinUp=fgetc(SUEF);
-		EVerify=fgetc(SUEF);
-		LightsOn[0]=(fgetc(SUEF)!=0);
-		LightsOn[1]=(fgetc(SUEF)!=0);
+		FDC_NoSpinUp_flag=fgetc(SUEF);
+		FDC_VerifyDestn_flag=fgetc(SUEF);
+		drive[0].headloaded=(fgetc(SUEF)!=0);
+		drive[1].headloaded=(fgetc(SUEF)!=0);
 		ByteCount=fget32(SUEF);
 		DataPos=fget32(SUEF);
 		ExtControl=fgetc(SUEF);

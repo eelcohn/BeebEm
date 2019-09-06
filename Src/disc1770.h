@@ -24,6 +24,44 @@ Boston, MA  02110-1301, USA.
 
 #ifndef DISC1770_HEADER
 #define DISC1770_HEADER
+
+enum	{WD1770, WD1771, WD1772, WD1773, WD2791};	// Only difference is step rates
+
+struct FDC {
+	unsigned char	FDCController;					// From the enum above
+	unsigned short	FDCStatusRegister;
+	unsigned short	FDCCommandRegister;
+	unsigned short	FDCTrackRegister;
+	unsigned short	FDCSectorRegister;
+	unsigned short	FDCDataRegister;
+	unsigned short	FDCDriveControlRegister;
+	char			*Description;
+	unsigned char	InvertTrack00;
+};
+
+enum {ACORN, OPUS2791, OPUSDDOS, SOLIDISK, WATFORD};
+
+extern struct FDC fdc[5] = {
+	{ WD1770, 0xFE84, 0xFE84, 0xFE85, 0xFE86, 0xFE87, 0xFE80, "Acorn DDFS", 0x00 },		// Acorn DDFS
+	{ WD2791, 0xFE80, 0xFE80, 0xFE81, 0xFE82, 0xFE83, 0xFE84, "Opus 2791", 0x00 },		// Opus 2791
+	{ WD1770, 0xFE80, 0xFE80, 0xFE81, 0xFE82, 0xFE83, 0xFE84, "Opus DDFS", 0x00 },		// Opus D-DOS
+	{ WD1770, 0xFE80, 0xFE80, 0xFE81, 0xFE82, 0xFE83, 0xFE86, "Solidisk DDFS", 0x00 },	// Solidisk DDFS
+	{ WD1772, 0xFE84, 0xFE84, 0xFE85, 0xFE86, 0xFE87, 0xFE80, "Watford DDFS", 0x01 },	// Watford DDFS
+};
+
+enum {DRIVE, SIDE, DENSITY, INTERRUPT, RESET};
+
+class wd1770 {
+public:
+	static unsigned char wd1770::FDCBoard;
+
+	static unsigned char wd1770::ReadFDCRegister(unsigned char Register);
+	static void wd1770::WriteFDCRegister(unsigned char Register, unsigned char Value);
+	static unsigned char wd1770::ReadControlRegister(void);
+	static void wd1770::WriteControlRegister(unsigned char Value);
+	static char wd1770::GetFDCControlParams(char Option);
+};
+
 extern unsigned char DWriteable[2]; // Write Protect
 extern unsigned char Disc1770Enabled;
 unsigned char Read1770Register(unsigned char Register1770);

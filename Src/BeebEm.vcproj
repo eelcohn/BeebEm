@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="BeebEm"
 	ProjectGUID="{2A563DA8-9784-4AD0-935F-496CEFA5CDEC}"
 	RootNamespace="BeebEm"
@@ -242,7 +242,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DiscDrive.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\discedit.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Diskette.cpp"
 				>
 			</File>
 			<File
@@ -384,7 +392,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DiscDrive.h"
+				>
+			</File>
+			<File
 				RelativePath=".\discedit.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Diskette.h"
 				>
 			</File>
 			<File
