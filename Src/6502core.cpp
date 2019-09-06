@@ -20,8 +20,8 @@ Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 Boston, MA  02110-1301, USA.
 ****************************************************************/
 
-#ifdef WIN32
-#include <windows.h>
+#if HAVE_CONFIG_H
+#	include <config.h>
 #endif
 
 #include <iostream>
@@ -29,6 +29,7 @@ Boston, MA  02110-1301, USA.
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "platforms/platforms.h"
 #include "6502core.h"
 #include "beebmem.h"
 #include "beebsound.h"
@@ -55,11 +56,7 @@ Boston, MA  02110-1301, USA.
 #include "peripherals/copro_cumana.h"		// Included for the mc68kTube_Cumana variable
 
 
-#ifdef WIN32
 #define INLINE inline
-#else
-#define INLINE
-#endif
 
 using namespace std;
 
@@ -517,10 +514,10 @@ INLINE static void BPLInstrHandler(void) {
 INLINE static void BRKInstrHandler(void) {
   char errstr[250];
   if (CPUDebug) {
-  sprintf(errstr,"BRK Instruction at 0x%04x after %i instructions. ACCON: 0x%02x ROMSEL: 0x%02x",ProgramCounter,InstrCount,ACCCON,PagedRomReg);
-  MessageBox(GETHWND,errstr,WindowTitle,MB_OKCANCEL|MB_ICONERROR);
-  //fclose(InstrLog);
-  exit(1); 
+		sprintf(errstr,"BRK Instruction at 0x%04x after %i instructions. ACCON: 0x%02x ROMSEL: 0x%02x",ProgramCounter,InstrCount,ACCCON,PagedRomReg);
+		gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OKCANCEL|MB_ICONERROR);
+		//fclose(InstrLog);
+		exit(1); 
   }
   PushWord(ProgramCounter+1);
   SetPSR(FlagB,0,0,0,0,1,0,0); /* Set B before pushing */
@@ -637,7 +634,7 @@ INLINE static void JSRInstrHandler(int16 address) {
   /*if (ProgramCounter==0xffdd) {
 	  char errstr[250];
 	  sprintf(errstr,"OSFILE called\n");
-	  MessageBox(GETHWND,errstr,WindowTitle,MB_OKCANCEL|MB_ICONERROR);
+	  gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OKCANCEL|MB_ICONERROR);
   }*/
 
 } /* JSRInstrHandler */
@@ -790,23 +787,16 @@ INLINE static void STYInstrHandler(int16 address) {
 INLINE static void BadInstrHandler(int opcode) {
 	if (!IgnoreIllegalInstructions)
 	{
-#ifdef WIN32
 		char errstr[250];
 		sprintf(errstr,"Unsupported 6502 instruction 0x%02X at 0x%04X\n"
 			"  OK - instruction will be skipped\n"
 			"  Cancel - dump memory and exit",opcode,ProgramCounter-1);
-		if (MessageBox(GETHWND,errstr,WindowTitle,MB_OKCANCEL|MB_ICONERROR) == IDCANCEL)
+		if (gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OKCANCEL|MB_ICONERROR) == IDCANCEL)
 		{
+			//DumpRegs();
 			beebmem_dumpstate();
 			exit(0);
 		}
-#else
-		fprintf(stderr,"Bad instruction handler called:\n");
-		DumpRegs();
-		fprintf(stderr,"Dumping main memory\n");
-		beebmem_dumpstate();
-		// abort();
-#endif
 	}
 
 	/* Do not know what the instruction does but can guess if it is 1,2 or 3 bytes */
@@ -1168,16 +1158,13 @@ void Exec6502Instruction(void) {
 		}
 
 		if (trace == 1)
-		{
 			Dis6502();
-		}
 
 		z80_execute();
 
 		if (Enable_Arm)
-		{
 			arm->exec(4);
-		}
+
 		if (mc68kTube_CiscOS)
 			obj_copro_ciscos->Exec(1);
 
@@ -1429,7 +1416,7 @@ void Exec6502Instruction(void) {
 				/*if (ProgramCounter==0xffdd) {
 				char errstr[250];
 				sprintf(errstr,"OSFILE called\n");
-				MessageBox(GETHWND,errstr,WindowTitle,MB_OKCANCEL|MB_ICONERROR);
+				gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OKCANCEL|MB_ICONERROR);
 				}*/
 				break;
 			case 0x4d:

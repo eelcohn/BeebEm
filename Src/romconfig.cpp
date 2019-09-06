@@ -21,7 +21,7 @@ Boston, MA  02110-1301, USA.
 // BeebWin ROM Configuration Dialog
 
 #include <stdio.h>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <windowsx.h>
 #include <commctrl.h>
 #include <initguid.h>
@@ -404,7 +404,7 @@ bool WriteROMFile(const char *filename, ROMConfigFile ROMConfig)
 	{
 		char errstr[200];
 		sprintf(errstr, "Failed to write ROM configuration file:\n  %s", filename);
-		MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 		return false;
 	}
 

@@ -21,7 +21,7 @@ Boston, MA  02110-1301, USA.
 // BeebWin DirectX and display rendering support
 
 #include <stdio.h>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <initguid.h>
 #include <ddraw.h>
 #include "main.h"
@@ -47,7 +47,7 @@ void BeebWin::InitDX(void)
 		{
 			char errstr[200];
 			sprintf(errstr,"DirectX9 initialisation failed\nFailure code %X\nTrying DirectDraw",hr);
-			MessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+			gui::guiMessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 
 			m_DisplayRenderer = IDM_DISPDDRAW;
 			UpdateDisplayRendererMenu();
@@ -62,7 +62,7 @@ void BeebWin::InitDX(void)
 			char errstr[200];
 			sprintf(errstr,
 					"DirectDraw initialisation failed\nFailure code %X\nSwitching to GDI",hr);
-			MessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+			gui::guiMessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 			PostMessage(m_hWnd, WM_COMMAND, IDM_DISPGDI, 0);
 		}
 	}
@@ -104,7 +104,7 @@ void BeebWin::ReinitDX(void)
 	{
 		char errstr[200];
 		sprintf(errstr,"DirectX failure re-initialising\nFailure code %X\nSwitching to GDI\n",hr);
-		MessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 		PostMessage(m_hWnd, WM_COMMAND, IDM_DISPGDI, 0);
 	}
 
@@ -500,7 +500,7 @@ void BeebWin::RenderDX9(void)
 	{
 		char errstr[200];
 		sprintf(errstr,"DirectX9 renderer failed\nFailure code %X\nSwitching to GDI\n",hr);
-		MessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 		PostMessage(m_hWnd, WM_COMMAND, IDM_DISPGDI, 0);
 	}
 }
@@ -662,7 +662,7 @@ void BeebWin::updateLines(HDC hDC, int starty, int nlines)
 				sprintf(errstr,
 					"DirectX failure while updating screen\nFailure code %XSwitching to GDI\n",
 					ddrval);
-				MessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+				gui::guiMessageBox(m_hWnd,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 				PostMessage(m_hWnd, WM_COMMAND, IDM_DISPGDI, 0);
 			}
 		}
@@ -738,7 +738,7 @@ void BeebWin::updateLines(HDC hDC, int starty, int nlines)
 		HRESULT hr = aviWriter->WriteVideo((BYTE*)m_AviScreen);
 		if (hr != E_UNEXPECTED && FAILED(hr))
 		{
-			MessageBox(m_hWnd, "Failed to write video to AVI file",
+			gui::guiMessageBox(m_hWnd, "Failed to write video to AVI file",
 					   WindowTitle, MB_OK|MB_ICONERROR);
 			delete aviWriter;
 			aviWriter = NULL;

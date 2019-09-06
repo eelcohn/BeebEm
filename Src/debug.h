@@ -27,7 +27,7 @@ Boston, MA  02110-1301, USA.
 #ifndef DEBUG_HEADER
 #define DEBUG_HEADER
 
-#include <windows.h>
+#include "platforms/platforms.h"
 #include "viastate.h"
 
 extern int DebugEnabled;

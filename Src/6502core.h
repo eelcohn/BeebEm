@@ -25,6 +25,10 @@ Boston, MA  02110-1301, USA.
 #ifndef CORE6502_HEADER
 #define CORE6502_HEADER
 
+#if HAVE_CONFIG_H
+#	include <config.h>
+#endif
+
 #include "port.h"
 #include "stdio.h"
 

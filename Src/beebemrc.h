@@ -280,7 +280,6 @@ Boston, MA  02110-1301, USA.
 #define ID_LOADTAPE                     40108
 #define ID_REWINDTAPE                   40116
 #define ID_SFX_RELAY                    40117
-#define IDM_TUBE                        40118
 #define ID_HIDEMENU                     40121
 #define ID_TAPESOUND                    40122
 #define ID_SERIAL                       40123
@@ -294,6 +293,13 @@ Boston, MA  02110-1301, USA.
 #define ID_SHOW_DISCLEDS                40132
 #define ID_8271                         40133
 #define ID_FDC_DLL                      40134
+#define ID_FDC_ACORN_8271               42001
+#define ID_FDC_ACORN_1772               42002
+#define ID_FDC_OPUS_DDOS                42003
+#define ID_FDC_SOLIDISK_DFDC1_8271      42004
+#define ID_FDC_SOLIDISK_DFDC1_1770      42005
+#define ID_FDC_SOLIDISK_DDFS_1770       42006
+#define ID_FDC_WATFORD_DDFS             42004
 #define ID_TAPE_FAST                    40135
 #define ID_TAPE_MFAST                   40136
 #define ID_TAPE_MSLOW                   40137
@@ -333,7 +339,6 @@ Boston, MA  02110-1301, USA.
 #define IDM_BLUR_2                      40178
 #define IDM_BLUR_4                      40179
 #define IDM_BLUR_8                      40180
-#define IDM_TORCH                       40181
 #define IDM_CAPTUREVIDEO                40182
 #define IDM_ENDVIDEO                    40183
 #define IDM_VIDEORES1                   40185
@@ -347,8 +352,6 @@ Boston, MA  02110-1301, USA.
 #define IDM_VIDEOSKIP5                  40193
 #define ID_ECONET                       40194
 #define IDM_SPEECH                      40196
-#define IDM_TUBE186                     40197
-#define IDM_ACORNZ80                    40198
 #define ID_TELETEXT                     40199
 #define ID_HARDDRIVE                    40200
 #define IDM_EJECTDISC0                  40201
@@ -379,10 +382,14 @@ Boston, MA  02110-1301, USA.
 #define IDM_1440X1080                   40226
 #define IDM_1600X1200                   40227
 #define ID_UPRM                         40228
-#define IDM_ARM                         40229
-#define IDM_COPRO_CISCOS                      40235
-#define IDM_COPRO_CUMANA68K                  40237
-#define IDM_COPRO_CASPER68K                  40240
+#define IDM_TUBE                        41000
+#define IDM_ACORNZ80                    41001
+#define IDM_TUBE186                     41002
+#define IDM_TORCH                       41003
+#define IDM_ARM                         41004
+#define IDM_COPRO_CISCOS                41005
+#define IDM_COPRO_CUMANA68K             41006
+#define IDM_COPRO_CASPER68K             41007
 #define IDM_LOADKEYMAP                  40230
 #define IDM_SAVEKEYMAP                  40231
 #define IDM_AUTOSAVE_PREFS_CMOS         40232

@@ -22,7 +22,7 @@ Boston, MA  02110-1301, USA.
 
 #ifndef VIA_HEADER
 #define VIA_HEADER
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <iostream>
 #include <fstream>
 #include "via.h"

@@ -29,7 +29,7 @@ Boston, MA  02110-1301, USA.
 // 
 //
 #include <stdio.h>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include "main.h"
 #include "beebwin.h"
 #include "econet.h"
@@ -1802,6 +1802,6 @@ void debugADLCprint(void) {
 
 void EconetError(const char *errstr) {
 	if (DebugEnabled) DebugDisplayTrace(DEBUG_ECONET, true, errstr);
-	MessageBox(GETHWND,errstr,"BeebEm",MB_OK|MB_ICONERROR);
+	gui::guiMessageBox(GETHWND,errstr,"BeebEm",MB_OK|MB_ICONERROR);
 }
 

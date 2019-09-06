@@ -2,8 +2,8 @@
   Written by Eelco Huininga 2016
 */
 
-#include "../components/mc68k.h"		// Included for mc68k object
-#include "../components/ula9c018.h"
+#include "../devices/mc68k.h"		// Included for mc68k object
+#include "../devices/ula9c018.h"
 
 //extern bool Enable_CiscOS68k;	// See tube.h for description
 extern bool mc68kTube_CiscOS;	// Global variable indicating wether or not the CiscOS 68k Co-Pro is selected and active
@@ -13,8 +13,8 @@ extern bool mc68kTube_CiscOS;	// Global variable indicating wether or not the Ci
 class copro_ciscos {
 public:
 	/****** Constructor / Deconstructor ******************************************/
-	copro_ciscos(void);
-	~copro_ciscos(void);
+	copro_ciscos::copro_ciscos(void);
+	copro_ciscos::~copro_ciscos(void);
 
 	bool			DEBUG;
 
@@ -35,9 +35,9 @@ public:
 	unsigned int	TUBE_ULA_ADDR;
 	char			biosFile[128];
 
-	void			Reset(void);
-	void			Exec(int Cycles);
-	unsigned char	readByte(unsigned int address);
-	void			writeByte(unsigned int address, unsigned char value);
-	void			InitMemory(void);
+	void			copro_ciscos::Reset(void);
+	void			copro_ciscos::Exec(int Cycles);
+	unsigned char	copro_ciscos::readByte(unsigned int address);
+	void			copro_ciscos::writeByte(unsigned int address, unsigned char value);
+	void			copro_ciscos::InitMemory(void);
 };

@@ -22,7 +22,7 @@ Boston, MA  02110-1301, USA.
 // BeebEm IO support - disk, tape, state, printer, AVI capture
 
 #include <stdio.h>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <initguid.h>
 #include <shlobj.h>
 #include <gdiplus.h>
@@ -228,7 +228,7 @@ int BeebWin::ReadDisc(int Drive,HMENU dmenu, bool bCheckForPrefs)
 			if (adfs)
 			{
 				if (NativeFDC)
-					MessageBox(GETHWND,"The native 8271 FDC cannot read ADFS discs\n","BeebEm",
+					gui::guiMessageBox(GETHWND,"The native 8271 FDC cannot read ADFS discs\n","BeebEm",
 							   MB_OK|MB_ICONERROR);
 				else
 					Load1770DiscImage(FileName,Drive,2,dmenu); // 2 = adfs
@@ -611,9 +611,9 @@ void BeebWin::ToggleWriteProtect(int Drive)
 	}
 
 	if (Drive == 0)
-		CheckMenuItem(m_hMenu, IDM_WPDISC0, m_WriteProtectDisc[0] ? MF_CHECKED : MF_UNCHECKED);
+		gui::guiCheckMenuItem(m_hMenu, IDM_WPDISC0, m_WriteProtectDisc[0] ? MF_CHECKED : MF_UNCHECKED);
 	else
-		CheckMenuItem(m_hMenu, IDM_WPDISC1, m_WriteProtectDisc[1] ? MF_CHECKED : MF_UNCHECKED);
+		gui::guiCheckMenuItem(m_hMenu, IDM_WPDISC1, m_WriteProtectDisc[1] ? MF_CHECKED : MF_UNCHECKED);
 }
 
 void BeebWin::SetDiscWriteProtects(void)
@@ -622,13 +622,13 @@ void BeebWin::SetDiscWriteProtects(void)
 	{
 		m_WriteProtectDisc[0] = !IsDiscWritable(0);
 		m_WriteProtectDisc[1] = !IsDiscWritable(1);
-		CheckMenuItem(m_hMenu, IDM_WPDISC0, m_WriteProtectDisc[0] ? MF_CHECKED : MF_UNCHECKED);
-		CheckMenuItem(m_hMenu, IDM_WPDISC1, m_WriteProtectDisc[1] ? MF_CHECKED : MF_UNCHECKED);
+		gui::guiCheckMenuItem(m_hMenu, IDM_WPDISC0, m_WriteProtectDisc[0] ? MF_CHECKED : MF_UNCHECKED);
+		gui::guiCheckMenuItem(m_hMenu, IDM_WPDISC1, m_WriteProtectDisc[1] ? MF_CHECKED : MF_UNCHECKED);
 	}
 	else
 	{
-		CheckMenuItem(m_hMenu, IDM_WPDISC0, DWriteable[0] ? MF_UNCHECKED : MF_CHECKED);
-		CheckMenuItem(m_hMenu, IDM_WPDISC1, DWriteable[1] ? MF_UNCHECKED : MF_CHECKED);
+		gui::guiCheckMenuItem(m_hMenu, IDM_WPDISC0, DWriteable[0] ? MF_UNCHECKED : MF_CHECKED);
+		gui::guiCheckMenuItem(m_hMenu, IDM_WPDISC1, DWriteable[1] ? MF_UNCHECKED : MF_CHECKED);
 	}
 }
 
@@ -731,7 +731,7 @@ void BeebWin::TogglePrinter()
 		}
 	}
 
-	CheckMenuItem(hMenu, IDM_PRINTERONOFF, PrinterEnabled ? MF_CHECKED : MF_UNCHECKED);
+	gui::guiCheckMenuItem(hMenu, IDM_PRINTERONOFF, PrinterEnabled ? MF_CHECKED : MF_UNCHECKED);
 }
 
 /****************************************************************************/
@@ -868,7 +868,7 @@ void BeebWin::CaptureVideo()
 									DIB_RGB_COLORS, (void**)&m_AviScreen, NULL, 0);
 		if (SelectObject(m_AviDC, m_AviDIB) == NULL)
 		{
-			MessageBox(m_hWnd, "Failed to initialise AVI buffers",
+			gui::guiMessageBox(m_hWnd, "Failed to initialise AVI buffers",
 				WindowTitle, MB_OK|MB_ICONERROR);
 			delete aviWriter;
 			aviWriter = NULL;
@@ -893,7 +893,7 @@ void BeebWin::CaptureVideo()
 				(int)(50 / (m_AviFrameSkip+1)), m_hWnd);
 			if (FAILED(hr))
 			{
-				MessageBox(m_hWnd, "Failed to create AVI file",
+				gui::guiMessageBox(m_hWnd, "Failed to create AVI file",
 					WindowTitle, MB_OK|MB_ICONERROR);
 				delete aviWriter;
 				aviWriter = NULL;
@@ -958,7 +958,7 @@ void BeebWin::LoadFDC(char *DLLName, bool save) {
 
 		hFDCBoard=LoadLibrary(path);
 		if (hFDCBoard==NULL) {
-			MessageBox(GETHWND,"Unable to load FDD Extension Board DLL\nReverting to native 8271\n",WindowTitle,MB_OK|MB_ICONERROR); 
+			gui::guiMessageBox(GETHWND,"Unable to load FDD Extension Board DLL\nReverting to native 8271\n",WindowTitle,MB_OK|MB_ICONERROR); 
 			strcpy(DLLName, "None");
 		}
 		else {
@@ -966,7 +966,7 @@ void BeebWin::LoadFDC(char *DLLName, bool save) {
 			PSetDriveControl=(lSetDriveControl) GetProcAddress(hFDCBoard,"SetDriveControl");
 			PGetDriveControl=(lGetDriveControl) GetProcAddress(hFDCBoard,"GetDriveControl");
 			if ((PGetBoardProperties==NULL) || (PSetDriveControl==NULL) || (PGetDriveControl==NULL)) {
-				MessageBox(GETHWND,"Invalid FDD Extension Board DLL\nReverting to native 8271\n",WindowTitle,MB_OK|MB_ICONERROR);
+				gui::guiMessageBox(GETHWND,"Invalid FDD Extension Board DLL\nReverting to native 8271\n",WindowTitle,MB_OK|MB_ICONERROR);
 				strcpy(DLLName, "None");
 			}
 			else {
@@ -984,11 +984,11 @@ void BeebWin::LoadFDC(char *DLLName, bool save) {
 
 	// Set menu options
 	if (NativeFDC) {
-		CheckMenuItem(m_hMenu,ID_8271,MF_CHECKED);
-		CheckMenuItem(m_hMenu,ID_FDC_DLL,MF_UNCHECKED);
+		gui::guiCheckMenuItem(m_hMenu,ID_8271,MF_CHECKED);
+		gui::guiCheckMenuItem(m_hMenu,ID_FDC_DLL,MF_UNCHECKED);
 	} else {
-		CheckMenuItem(m_hMenu,ID_8271,MF_UNCHECKED);
-		CheckMenuItem(m_hMenu,ID_FDC_DLL,MF_CHECKED);
+		gui::guiCheckMenuItem(m_hMenu,ID_8271,MF_UNCHECKED);
+		gui::guiCheckMenuItem(m_hMenu,ID_FDC_DLL,MF_CHECKED);
 	}
 
 	DisplayCycles=7000000;
@@ -1069,9 +1069,9 @@ void BeebWin::LoadEmuUEF(FILE *SUEF, int Version) {
 			else
 				id = m_MenuIdKeyMapping;
 		}
-		CheckMenuItem(m_hMenu, m_MenuIdKeyMapping, MF_UNCHECKED);
+		gui::guiCheckMenuItem(m_hMenu, m_MenuIdKeyMapping, MF_UNCHECKED);
 		m_MenuIdKeyMapping = id;
-		CheckMenuItem(m_hMenu, m_MenuIdKeyMapping, MF_CHECKED);
+		gui::guiCheckMenuItem(m_hMenu, m_MenuIdKeyMapping, MF_CHECKED);
 		TranslateKeyMapping();
 	}
 
@@ -1189,7 +1189,7 @@ bool BeebWin::ReadKeyMap(char *filename, KeyMap *keymap)
 	{
 		char errstr[500];
 		sprintf(errstr, "Failed to read key map file:\n  %s", filename);
-		MessageBox(GETHWND, errstr, WindowTitle, MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(GETHWND, errstr, WindowTitle, MB_OK|MB_ICONERROR);
 		success = false;
 	}
 	else
@@ -1199,7 +1199,7 @@ bool BeebWin::ReadKeyMap(char *filename, KeyMap *keymap)
 		{
 			char errstr[500];
 			sprintf(errstr, "Invalid key map file:\n  %s\n", filename);
-			MessageBox(GETHWND, errstr, WindowTitle, MB_OK|MB_ICONERROR);
+			gui::guiMessageBox(GETHWND, errstr, WindowTitle, MB_OK|MB_ICONERROR);
 			success = false;
 		}
 		else
@@ -1213,7 +1213,7 @@ bool BeebWin::ReadKeyMap(char *filename, KeyMap *keymap)
 				{
 					char errstr[500];
 					sprintf(errstr, "Data missing from key map file:\n  %s\n", filename);
-					MessageBox(GETHWND, errstr, WindowTitle, MB_OK|MB_ICONERROR);
+					gui::guiMessageBox(GETHWND, errstr, WindowTitle, MB_OK|MB_ICONERROR);
 					success = false;
 					break;
 				}
@@ -1255,7 +1255,7 @@ bool BeebWin::WriteKeyMap(char *filename, KeyMap *keymap)
 	{
 		char errstr[500];
 		sprintf(errstr, "Failed to write key map file:\n  %s", filename);
-		MessageBox(GETHWND, errstr, WindowTitle, MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(GETHWND, errstr, WindowTitle, MB_OK|MB_ICONERROR);
 		success = false;
 	}
 	else
@@ -1289,9 +1289,9 @@ void BeebWin::doCopy()
 
 	if (IDM_PRINTER_CLIPBOARD != m_MenuIdPrinterPort)
 	{
-		CheckMenuItem(m_hMenu, m_MenuIdPrinterPort, MF_UNCHECKED);
+		gui::guiCheckMenuItem(m_hMenu, m_MenuIdPrinterPort, MF_UNCHECKED);
 		m_MenuIdPrinterPort = IDM_PRINTER_CLIPBOARD;
-		CheckMenuItem(m_hMenu, m_MenuIdPrinterPort, MF_CHECKED);
+		gui::guiCheckMenuItem(m_hMenu, m_MenuIdPrinterPort, MF_CHECKED);
 	}
 	TranslatePrinterPort();
 	TogglePrinter();		// Turn printer back on
@@ -1517,7 +1517,7 @@ BOOL CALLBACK DiscExportDlgProc(HWND hwndDlg, UINT message, WPARAM wParam, LPARA
 				}
 				else if (SHGetPathFromIDList(idList, szExportFolder) == FALSE)
 				{
-					MessageBox(hwndDlg, "Invalid folder selected", WindowTitle, MB_OK|MB_ICONWARNING);
+					gui::guiMessageBox(hwndDlg, "Invalid folder selected", WindowTitle, MB_OK|MB_ICONWARNING);
 					wParam = IDCANCEL;
 				}
 				if (idList != NULL)
@@ -1567,7 +1567,7 @@ void BeebWin::ExportDiscFiles(int menuId)
 		else
 		{
 			// ADFS - not currently supported
-			MessageBox(m_hWnd, "Export from ADFS disc not supported", WindowTitle, MB_OK|MB_ICONWARNING);
+			gui::guiMessageBox(m_hWnd, "Export from ADFS disc not supported", WindowTitle, MB_OK|MB_ICONWARNING);
 			return;
 		}
 	}
@@ -1576,7 +1576,7 @@ void BeebWin::ExportDiscFiles(int menuId)
 	if (szDiscFile[0] == 0 || heads == 1 && (menuId == IDM_DISC_EXPORT_2 || menuId == IDM_DISC_EXPORT_3))
 	{
 		sprintf(szErrStr, "No disc loaded in drive %d", menuId - IDM_DISC_EXPORT_0);
-		MessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONWARNING);
+		gui::guiMessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONWARNING);
 		return;
 	}
 
@@ -1590,7 +1590,7 @@ void BeebWin::ExportDiscFiles(int menuId)
 	if (!success)
 	{
 		sprintf(szErrStr, "Failed to read catalogue from disc:\n  %s", szDiscFile);
-		MessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONERROR);
 		return;
 	}
 
@@ -1623,7 +1623,7 @@ void BeebWin::ExportDiscFiles(int menuId)
 	}
 
 	sprintf(szErrStr, "Files successfully exported: %d", n);
-	MessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONINFORMATION);
+	gui::guiMessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONINFORMATION);
 }
 
 
@@ -1667,7 +1667,7 @@ void BeebWin::ImportDiscFiles(int menuId)
 		else
 		{
 			// ADFS - not currently supported
-			MessageBox(m_hWnd, "Import to ADFS disc not supported", WindowTitle, MB_OK|MB_ICONWARNING);
+			gui::guiMessageBox(m_hWnd, "Import to ADFS disc not supported", WindowTitle, MB_OK|MB_ICONWARNING);
 			return;
 		}
 	}
@@ -1676,7 +1676,7 @@ void BeebWin::ImportDiscFiles(int menuId)
 	if (szDiscFile[0] == 0 || heads == 1 && (menuId == IDM_DISC_IMPORT_2 || menuId == IDM_DISC_IMPORT_3))
 	{
 		sprintf(szErrStr, "No disc loaded in drive %d", menuId - IDM_DISC_IMPORT_0);
-		MessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONWARNING);
+		gui::guiMessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONWARNING);
 		return;
 	}
 
@@ -1690,7 +1690,7 @@ void BeebWin::ImportDiscFiles(int menuId)
 	if (!success)
 	{
 		sprintf(szErrStr, "Failed to read catalogue from disc:\n  %s", szDiscFile);
-		MessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONERROR);
 		return;
 	}
 
@@ -1771,7 +1771,7 @@ void BeebWin::ImportDiscFiles(int menuId)
 	}
 
 	sprintf(szErrStr, "Files successfully imported: %d", n);
-	MessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONINFORMATION);
+	gui::guiMessageBox(m_hWnd, szErrStr, WindowTitle, MB_OK|MB_ICONINFORMATION);
 
 	// Re-read disc image
 	if (MachineType != 3 && NativeFDC)
@@ -1832,7 +1832,7 @@ bool BeebWin::GetImageEncoderClsid(WCHAR *mimeType, CLSID *encoderClsid)
 
 	if (i == num)
 	{
-		MessageBox(m_hWnd, "Failed to get image encoder",
+		gui::guiMessageBox(m_hWnd, "Failed to get image encoder",
 				   WindowTitle, MB_OK|MB_ICONERROR);
 		return false;
 	}
@@ -1997,7 +1997,7 @@ void BeebWin::CaptureBitmap(int x, int y, int sx, int sy)
 	HGDIOBJ prevObj = SelectObject(CaptureDC, CaptureDIB);
 	if (prevObj == NULL)
 	{
-		MessageBox(m_hWnd, "Failed to initialise capture buffers",
+		gui::guiMessageBox(m_hWnd, "Failed to initialise capture buffers",
 				   WindowTitle, MB_OK|MB_ICONERROR);
 	}
 	else
@@ -2013,7 +2013,7 @@ void BeebWin::CaptureBitmap(int x, int y, int sx, int sy)
 		Status status = bitmap->Save(wFileName, &encoderClsid, NULL);
 		if (status != Ok)
 		{
-			MessageBox(m_hWnd, "Failed to save screen capture",
+			gui::guiMessageBox(m_hWnd, "Failed to save screen capture",
 					   WindowTitle, MB_OK|MB_ICONERROR);
 		}
 		else if (m_CaptureBitmapAutoFilename)

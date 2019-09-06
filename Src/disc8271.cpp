@@ -35,7 +35,7 @@ Boston, MA  02110-1301, USA.
 #include "beebsound.h"
 
 #ifdef WIN32
-#include <windows.h>
+#include "platforms/platforms.h"
 #include "main.h"
 #include "beebmem.h"
 #include "disc1770.h"

@@ -22,21 +22,24 @@ Boston, MA  02110-1301, USA.
 ****************************************************************/
 
 /* Win32 port - Mike Wyatt 7/6/97 */
-/* Conveted Win32 port to use DirectSound - Mike Wyatt 11/1/98 */
+/* Converted Win32 port to use DirectSound - Mike Wyatt 11/1/98 */
+
+#if HAVE_CONFIG_H
+#	include <config.h>
+#endif
 
 #include "beebsound.h"
 
 #include <iostream>
 #include <fstream>
-#include <windows.h>
-#include <process.h>
+#include "platforms/platforms.h"
+//#include <process.h>
 #include <math.h>
 
 #include <errno.h>
-#include <windows.h>
-#include <windowsx.h>
-#include <mmsystem.h>
-#include "main.h"
+//#include <windowsx.h>
+//#include <mmsystem.h>
+//#include "main.h"
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -442,7 +445,7 @@ HRESULT WriteToSoundBuffer(PBYTE lpbSoundData)
 		HRESULT hResult( aviWriter->WriteSound( lpbSoundData, SoundBufferSize ) );
 		if( FAILED( hResult ) && hResult != E_UNEXPECTED )
 		{
-			MessageBox( GETHWND, "Failed to write sound to AVI file", "BeebEm", MB_OK | MB_ICONERROR );
+			gui::guiMessageBox( GETHWND, "Failed to write sound to AVI file", "BeebEm", MB_OK | MB_ICONERROR );
 			delete aviWriter;
 			aviWriter = 0;
 		}
@@ -673,7 +676,7 @@ void PlayUpTil(double DestTime) {
 			}
 			else
 			{
-				MessageBox(GETHWND,"Failed to open audio.dbg",WindowTitle,MB_OK|MB_ICONERROR);
+				gui::guiMessageBox(GETHWND,"Failed to open audio.dbg",WindowTitle,MB_OK|MB_ICONERROR);
 				exit(1);
 			}
 #else
@@ -746,7 +749,7 @@ static void InitAudioDev(int sampleratein) {
 		}
 		catch( DirectSoundStreamer::PrimaryUnsupported const & )
 		{
-			MessageBox(GETHWND, "Use of primary DirectSound buffer unsupported on this system. Using secondary DirectSound buffer instead", WindowTitle, MB_OK | MB_ICONERROR);
+			gui::guiMessageBox(GETHWND, "Use of primary DirectSound buffer unsupported on this system. Using secondary DirectSound buffer instead", WindowTitle, MB_OK | MB_ICONERROR);
 			UsePrimaryBuffer = 0;
 			mainWin->SetPBuff();
 		}
@@ -766,7 +769,7 @@ static void InitAudioDev(int sampleratein) {
 		}
 	}
 	SoundEnabled = 0;
-	MessageBox( GETHWND, "Attempt to start sound system failed", "BeebEm", MB_OK | MB_ICONERROR );
+	gui::guiMessageBox( GETHWND, "Attempt to start sound system failed", "BeebEm", MB_OK | MB_ICONERROR );
 
 }// InitAudioDev
 
@@ -791,7 +794,7 @@ void LoadSoundSamples(void) {
 			else {
 				char errstr[200];
 				sprintf(errstr,"Could not open sound sample file:\n  %s", FileName);
-				MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+				gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 			}
 		}
 		SoundSamplesLoaded = true;

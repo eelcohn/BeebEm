@@ -37,7 +37,7 @@ Boston, MA  02110-1301, USA.
 
  */
 
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <stdio.h>
 #include "serialdevices.h"
 #include "6502core.h"
@@ -360,7 +360,7 @@ bool IP232Poll(void)
 		if (DebugEnabled) 
 				DebugDisplayTrace(DEBUG_REMSER, true, "IP232: Comms Close");
 //		mStartAgain = false;
-//		MessageBox(GETHWND,"Could not connect to specified address",WindowTitle,MB_OK|MB_ICONERROR);
+//		gui::guiMessageBox(GETHWND,"Could not connect to specified address",WindowTitle,MB_OK|MB_ICONERROR);
 		bSerialStateChanged=TRUE;
 		SerialPortEnabled=FALSE;
 		mainWin->ExternUpdateSerialMenu();
@@ -568,7 +568,7 @@ int space, bufflen;
 						SerialPortEnabled=FALSE;
 						mainWin->ExternUpdateSerialMenu();
 						IP232Close();
-						MessageBox(GETHWND,"Lost connection; serial port has been disabled.",WindowTitle,MB_OK|MB_ICONERROR);
+						gui::guiMessageBox(GETHWND,"Lost connection; serial port has been disabled.",WindowTitle,MB_OK|MB_ICONERROR);
 						return ; // noErr;
 						
 					}
@@ -620,7 +620,7 @@ int space, bufflen;
 						mainWin->ExternUpdateSerialMenu();
 						
 						IP232Close();
-						MessageBox(GETHWND,"Lost connection; serial port has been disabled",WindowTitle,MB_OK|MB_ICONERROR);
+						gui::guiMessageBox(GETHWND,"Lost connection; serial port has been disabled",WindowTitle,MB_OK|MB_ICONERROR);
 
 					}
 					

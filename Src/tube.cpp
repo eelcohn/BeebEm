@@ -41,7 +41,7 @@ Boston, MA  02110-1301, USA.
 #include "peripherals/copro_ciscos.h"
 
 #ifdef WIN32
-#include <windows.h>
+#include "platforms/platforms.h"
 #define INLINE inline
 #else
 #define INLINE

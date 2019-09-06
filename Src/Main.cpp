@@ -28,7 +28,7 @@ Boston, MA  02110-1301, USA.
 
 #include <iostream>
 #include <fstream>
-#include <windows.h>
+#include "platforms/platforms.h"
 
 #include "6502core.h"
 #include "beebmem.h"
@@ -118,8 +118,8 @@ int CALLBACK WinMain(HINSTANCE hInstance,
 	return(0);  
 } /* main */
 
-char *mon[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-				"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+//char *mon[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+//				"Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 
 void WriteLog(char *fmt, ...)

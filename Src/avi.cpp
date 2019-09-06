@@ -24,7 +24,7 @@ Boston, MA  02110-1301, USA.
 // Mike Wyatt - Oct 2005
 //
 
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <mmreg.h>
 #include "avi.h"
 

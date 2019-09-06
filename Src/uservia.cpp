@@ -21,7 +21,7 @@ Boston, MA  02110-1301, USA.
 ****************************************************************/
 
 #ifdef WIN32
-#include <windows.h>
+#include "platforms/platforms.h"
 #include "main.h"
 #endif
 
@@ -133,7 +133,7 @@ void UserVIAWrite(int Address, int Value) {
 #ifdef WIN32
 					char errstr[200];
 					sprintf(errstr, "Failed to write to printer file:\n  %s", PrinterFileName);
-					MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+					gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 #else
 					cerr << "Failed to write to printer file " << PrinterFileName << "\n";
 #endif
@@ -567,7 +567,7 @@ void PrinterEnable(char *FileName) {
 #ifdef WIN32
 		char errstr[200];
 		sprintf(errstr, "Failed to open printer:\n  %s", PrinterFileName);
-		MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 #else
 		cerr << "Failed to open printer " << PrinterFileName << "\n";
 #endif

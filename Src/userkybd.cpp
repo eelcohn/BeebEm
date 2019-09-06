@@ -21,7 +21,7 @@ Boston, MA  02110-1301, USA.
 /* User defined keyboard funcitonality. */
 
 #include <stdio.h>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <string.h>
 #include "main.h"
 #include "beebemrc.h"

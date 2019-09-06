@@ -1,0 +1,6 @@
+# .gitignore file for BeebEm
+
+BeebEm.ilk
+src/BeebEm.ncb
+src/BeebEm.vcproj.*.user
+src/Debug/

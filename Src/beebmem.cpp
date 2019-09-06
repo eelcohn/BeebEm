@@ -26,8 +26,8 @@ Boston, MA  02110-1301, USA.
 // Econet emulation: Rob O'Donnell robert@irrelevant.com 28/12/2004
 // IDE Interface: JGH jgh@mdfs.net 25/12/2011
 
-#ifdef WIN32
-#include <windows.h>
+#if HAVE_CONFIG_H
+#	include <config.h>
 #endif
 
 #include <ctype.h>
@@ -37,6 +37,7 @@ Boston, MA  02110-1301, USA.
 #include <iostream>
 #include <fstream>
 
+#include "platforms/platforms.h"
 #include "6502core.h"
 #include "disc8271.h"
 #include "main.h"
@@ -48,7 +49,7 @@ Boston, MA  02110-1301, USA.
 #include "disc1770.h"
 #include "serial.h"
 #include "tube.h"
-#include "errno.h"
+//#include "errno.h"
 #include "scsi.h"
 #include "sasi.h"
 #include "ide.h"
@@ -61,6 +62,11 @@ Boston, MA  02110-1301, USA.
 #include "peripherals/copro_casper.h"	// Included for the copro_casper object and the mc68kTube_Casper variable
 #include "peripherals/copro_ciscos.h"	// Included for the copro_ciscos object and the mc68kTube_Cumana variable
 #include "peripherals/copro_cumana.h"	// Included for the copro_cumana object and the mc68kTube_Cumana variable
+#include "peripherals/fdc_acorn_1772.h"	// Included for the fdc_acorn_1770 object
+
+#ifdef __GNUC__
+	#include "user_config.h"
+#endif
 
 extern copro_casper *obj_copro_casper;	// Defined in beebwin.cpp
 extern copro_cumana *obj_copro_cumana;	// Defined in beebwin.cpp
@@ -950,7 +956,7 @@ void BeebWriteMem(int Address, unsigned char Value) {
 	}
 
 	//Rob: add econet
-	if (Address>=0xfeA0 && Address<0xfebf && (EconetEnabled) ) {
+	if (Address>=0xfea0 && Address<0xfebf && (EconetEnabled) ) {
 		WriteEconetRegister((Address & 3), Value);
 		return;
 	}
@@ -1104,7 +1110,7 @@ bool ReadROMFile(const char *filename, ROMConfigFile ROMConfig)
 	{
 		char errstr[200];
 		sprintf(errstr, "Cannot open ROM configuration file:\n  %s", filename);
-		MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 		return false;
 	}
 
@@ -1137,7 +1143,7 @@ bool ReadROMFile(const char *filename, ROMConfigFile ROMConfig)
 	{
 		char errstr[200];
 		sprintf(errstr, "Invalid ROM configuration file:\n  %s", filename);
-		MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 		memset(ROMConfig, 0, sizeof(ROMConfigFile));
 	}
 
@@ -1190,7 +1196,7 @@ void BeebReadRoms(void) {
 	else {
 		char errstr[200];
 		sprintf(errstr, "Cannot open specified OS ROM:\n %s",fullname);
-		MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 	}
 
 	// read paged ROMs
@@ -1249,7 +1255,7 @@ void BeebReadRoms(void) {
 			else {
 				char errstr[200];
 				sprintf(errstr, "Cannot open specified ROM:\n %s",fullname);
-				MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+				gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 			}
 		}
 	}

@@ -266,7 +266,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\components\i8255.cpp"
+				RelativePath=".\peripherals\fdc_acorn_1772.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\peripherals\fdc_acorn_8271.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\i8255.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\i8271.cpp"
 				>
 			</File>
 			<File
@@ -274,23 +286,39 @@
 				>
 			</File>
 			<File
+				RelativePath=".\devices\ix86.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\ls174.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Main.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\components\mc146818.cpp"
+				RelativePath=".\devices\mc146818.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\components\mc6821.cpp"
+				RelativePath=".\devices\mc6821.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\components\mc68k.cpp"
+				RelativePath=".\devices\mc68k.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\components\r6522.cpp"
+				RelativePath=".\devices\r6522.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\ram.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\rom.cpp"
 				>
 			</File>
 			<File
@@ -334,7 +362,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\components\ula9c018.cpp"
+				RelativePath=".\devices\ula9c018.cpp"
 				>
 			</File>
 			<File
@@ -354,7 +382,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\components\wd177x.cpp"
+				RelativePath=".\platforms\visual-c.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\wd177x.cpp"
 				>
 			</File>
 			<File
@@ -366,7 +398,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\components\z80a.cpp"
+				RelativePath=".\devices\z80a.cpp"
 				>
 			</File>
 			<File
@@ -460,7 +492,19 @@
 				>
 			</File>
 			<File
-				RelativePath=".\components\i8255.h"
+				RelativePath=".\peripherals\fdc_acorn_1772.h"
+				>
+			</File>
+			<File
+				RelativePath=".\peripherals\fdc_acorn_8271.h"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\i8255.h"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\i8271.h"
 				>
 			</File>
 			<File
@@ -468,19 +512,31 @@
 				>
 			</File>
 			<File
+				RelativePath=".\devices\ix86.h"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\ls174.h"
+				>
+			</File>
+			<File
 				RelativePath=".\main.h"
 				>
 			</File>
 			<File
-				RelativePath=".\components\mc146818.h"
+				RelativePath=".\devices\mc146818.h"
 				>
 			</File>
 			<File
-				RelativePath=".\components\mc6821.h"
+				RelativePath=".\devices\mc6821.h"
 				>
 			</File>
 			<File
-				RelativePath=".\components\mc68k.h"
+				RelativePath=".\devices\mc68k.h"
+				>
+			</File>
+			<File
+				RelativePath=".\platforms\platforms.h"
 				>
 			</File>
 			<File
@@ -488,7 +544,15 @@
 				>
 			</File>
 			<File
-				RelativePath=".\components\r6522.h"
+				RelativePath=".\devices\r6522.h"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\ram.h"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\rom.h"
 				>
 			</File>
 			<File
@@ -532,7 +596,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\components\ula9c018.h"
+				RelativePath=".\devices\ula9c018.h"
 				>
 			</File>
 			<File
@@ -560,7 +624,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\components\wd177x.h"
+				RelativePath=".\gui\visual-c.h"
+				>
+			</File>
+			<File
+				RelativePath=".\devices\wd177x.h"
 				>
 			</File>
 			<File
@@ -568,7 +636,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\components\z80a.h"
+				RelativePath=".\devices\z80a.h"
 				>
 			</File>
 			<File

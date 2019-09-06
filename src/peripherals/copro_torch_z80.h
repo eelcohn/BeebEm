@@ -2,9 +2,17 @@
   Written by Eelco Huininga 2016
 */
 
-#include "../components/z80a.h"					// Included for mc68k object
-#include "../components/r6522.h"
-#include "../components/i8255.h"
+#include "../devices/z80a.h"					// Included for mc68k object
+#include "../devices/r6522.h"
+#include "../devices/i8255.h"
+
+#ifndef TRUE
+#define TRUE		1
+#endif
+
+#ifndef FALSE
+#define FALSE		0
+#endif
 
 //extern bool Enable_CoPro_Torch_Z80;
 extern bool CoProTorchZ80Active;		// Global variable indicating wether or not the Casper 68k Co-Pro is selected and active
@@ -33,9 +41,9 @@ public:
 	unsigned int	ROM_ADDR;			// Start address of ROM memory
 	char			biosFile[128];
 
-	void			Reset(void);
-	void			Exec(int Cycles);
-	unsigned char	readByte(unsigned int address);
-	void			writeByte(unsigned int address, unsigned char value);
-	void			InitMemory(void);
+	void			copro_torch_z80::Reset(void);
+	void			copro_torch_z80::Exec(int Cycles);
+	unsigned char	copro_torch_z80::readByte(unsigned int address);
+	void			copro_torch_z80::writeByte(unsigned int address, unsigned char value);
+	void			copro_torch_z80::InitMemory(void);
 };

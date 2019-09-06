@@ -23,7 +23,7 @@ Boston, MA  02110-1301, USA.
 #include <stdio.h>
 #include <string>
 #include <map>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <initguid.h>
 #include "main.h"
 #include "beebwin.h"
@@ -119,7 +119,7 @@ void BeebWin::LoadPreferences()
 		// No prefs file, will use defaults
 		char errstr[500];
 		sprintf(errstr, "Cannot open preferences file:\n  %s\n\nUsing default preferences", m_PrefsFile);
-		MessageBox(m_hWnd, errstr, WindowTitle, MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(m_hWnd, errstr, WindowTitle, MB_OK|MB_ICONERROR);
 	}
 	else if (fgets(buf, MAX_PREFS_LINE_LEN-1, fd) != NULL)
 	{
@@ -127,7 +127,7 @@ void BeebWin::LoadPreferences()
 		{
 			char errstr[500];
 			sprintf(errstr, "Invalid preferences file:\n  %s\n\nUsing default preferences", m_PrefsFile);
-			MessageBox(m_hWnd, errstr, WindowTitle, MB_OK|MB_ICONERROR);
+			gui::guiMessageBox(m_hWnd, errstr, WindowTitle, MB_OK|MB_ICONERROR);
 		}
 		else
 		{
@@ -772,7 +772,7 @@ void BeebWin::SavePreferences(bool saveAll)
 	{
 		char errstr[500];
 		sprintf(errstr, "Failed to write preferences file:\n  %s", m_PrefsFile);
-		MessageBox(m_hWnd, errstr, WindowTitle, MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(m_hWnd, errstr, WindowTitle, MB_OK|MB_ICONERROR);
 	}
 	else
 	{

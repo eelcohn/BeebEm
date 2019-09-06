@@ -664,6 +664,10 @@ BEGIN
         BEGIN
             MENUITEM "Native &8271",                ID_8271
             MENUITEM "&Select FDC Board...",        ID_FDC_DLL
+            MENUITEM "Acorn &8271",					ID_FDC_ACORN_8271
+            MENUITEM "Acorn &1770",					ID_FDC_ACORN_1772
+            MENUITEM "Opus &DDOS",					ID_FDC_OPUS_DDOS
+            MENUITEM "&Watford DDFS",				ID_FDC_WATFORD_DDFS
         END
 		POPUP "&Second Processor"
 		BEGIN

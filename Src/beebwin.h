@@ -33,7 +33,7 @@ Boston, MA  02110-1301, USA.
 #include <stdlib.h>
 #include <string>
 #include <map>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <d3dx9.h>
 #include <ddraw.h>
 #include <sapi.h>

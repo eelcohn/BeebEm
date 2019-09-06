@@ -26,7 +26,7 @@ Boston, MA  02110-1301, USA.
 // Mike Wyatt - Nov 2004
 // Econet added Rob O'Donnell 2004-12-28.
 
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <ctype.h>
 #include <string.h>
 #include <stdarg.h>
@@ -1164,7 +1164,7 @@ bool DebugLoadMemoryMap(char* filename, int bank)
 				{
 					fclose(infile);
 					sprintf(errstr, "Allocation failure reading memory map!");
-					MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+					gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 					if(map->entries != NULL)
 					{
 						free(map->entries);
@@ -1182,7 +1182,7 @@ bool DebugLoadMemoryMap(char* filename, int bank)
 			if(sscanf(buf, " %x %x %99c", &entry->start, &entry->end, &entry->desc) != 3)
 			{
 				sprintf(errstr, "Invalid memory map format!");
-				MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+				gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 				free(map->entries);
 				map->entries = NULL;
 				map->count = 0;

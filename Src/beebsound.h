@@ -26,11 +26,16 @@ Boston, MA  02110-1301, USA.
 #ifndef SOUND_HEADER
 #define SOUND_HEADER
 
-#ifdef WIN32
-/* Always compile sound code - it is switched on and off using SoundEnabled */
-#define SOUNDSUPPORT
-#include <windows.h>
+#if HAVE_CONFIG_H
+#	include <config.h>
 #endif
+
+//#ifdef WIN32
+/* Always compile sound code - it is switched on and off using SoundEnabled */
+//#define SOUNDSUPPORT
+//#include "platforms/platforms.h"
+//#endif
+#include "platforms/platforms.h"	// Only included for BOOL definition???
 
 #define MUTED 0
 #define UNMUTED 1

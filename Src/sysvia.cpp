@@ -29,7 +29,7 @@ keyboard emulation - David Alan Gilbert 30/10/94 */
 #include <fstream>
 #include <stdio.h>
 #include <time.h>
-#include <windows.h>
+#include "platforms/platforms.h"
 
 #include "6502core.h"
 #include "beebsound.h"
@@ -45,7 +45,7 @@ keyboard emulation - David Alan Gilbert 30/10/94 */
 #endif
 
 #ifdef WIN32
-#include <windows.h>
+#include "platforms/platforms.h"
 #endif
 
 using namespace std;

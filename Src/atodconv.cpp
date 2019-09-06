@@ -21,8 +21,8 @@ Boston, MA  02110-1301, USA.
 /* Analogue to digital converter support file for the beeb emulator -
    Mike Wyatt 7/6/97 */
 
-#ifdef WIN32
-#include <windows.h>
+#if HAVE_CONFIG_H
+#	include <config.h>
 #endif
 
 #include <stdio.h>

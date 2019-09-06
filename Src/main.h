@@ -29,7 +29,7 @@ Boston, MA  02110-1301, USA.
 #endif
 //#define MULTITHREAD
 
-#include <windows.h>
+#include "platforms/platforms.h"
 #include "beebwin.h"
 
 extern unsigned char MachineType;

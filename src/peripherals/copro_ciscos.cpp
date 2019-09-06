@@ -16,7 +16,7 @@ bool mc68kTube_CiscOS	= false;
 
 copro_ciscos::copro_ciscos(void) {
 	this->DEBUG				= false;
-	this->BOOTFLAG			= true;			// ==TRUE: ROM is at 00000000, ==FALSE: RAM is at 00000000-0037FFFF, ROM is at 00380000-003FFFFF
+	this->BOOTFLAG			= true;			// ==true: ROM is at 00000000, ==false: RAM is at 00000000-0037FFFF, ROM is at 00380000-003FFFFF
 	this->RAM_SIZE			= 0x00200000;	// 2 MBytes of ram memory
 	this->ROM_SIZE			= 0x00008000;	// 32 KBytes of rom memory
 	this->RAM_ADDR			= 0x00000000;	// RAM is at $00000000

@@ -23,7 +23,7 @@ Boston, MA  02110-1301, USA.
 
 #include <string.h>
 #include <stdlib.h>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include "port.h"
 
 // Public declarations.

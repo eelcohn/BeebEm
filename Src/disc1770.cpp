@@ -27,7 +27,7 @@ Written by Richard Gellman - Feb 2001
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include "disc1770.h"
 #include "6502core.h"
 #include "main.h"
@@ -724,7 +724,7 @@ void Load1770DiscImage(char *DscFileName,int DscDrive,unsigned char DscType,HMEN
 	{
 		char errstr[200];
 		sprintf(errstr, "Could not open disc file:\n  %s", DscFileName);
-		MessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
+		gui::guiMessageBox(GETHWND,errstr,WindowTitle,MB_OK|MB_ICONERROR);
 		return;
 	}
 

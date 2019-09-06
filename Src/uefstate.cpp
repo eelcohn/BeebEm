@@ -95,7 +95,7 @@ void SaveUEFState(char *StateName) {
 	{
 		char errstr[256];
 		sprintf(errstr, "Failed to write state file: %s", StateName);
-		MessageBox(GETHWND,errstr,"BeebEm",MB_ICONERROR|MB_OK);
+		gui::guiMessageBox(GETHWND,errstr,"BeebEm",MB_ICONERROR|MB_OK);
 	}
 }
 
@@ -115,7 +115,7 @@ void LoadUEFState(char *StateName) {
 		fseek(UEFState,0,SEEK_SET);  // Get File length for eof comparison.
 		fread(UEFId,10,1,UEFState);
 		if (strcmp(UEFId,"UEF File!")!=0) {
-			MessageBox(GETHWND,"The file selected is not a UEF File.","BeebEm",MB_ICONERROR|MB_OK);
+			gui::guiMessageBox(GETHWND,"The file selected is not a UEF File.","BeebEm",MB_ICONERROR|MB_OK);
 			fclose(UEFState);
 			return;
 		}
@@ -162,7 +162,7 @@ void LoadUEFState(char *StateName) {
 	{
 		char errstr[256];
 		sprintf(errstr, "Cannot open state file: %s", StateName);
-		MessageBox(GETHWND,errstr,"BeebEm",MB_ICONERROR|MB_OK);
+		gui::guiMessageBox(GETHWND,errstr,"BeebEm",MB_ICONERROR|MB_OK);
 	}
 }
 

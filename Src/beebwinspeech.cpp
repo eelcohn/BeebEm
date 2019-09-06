@@ -21,7 +21,7 @@ Boston, MA  02110-1301, USA.
 // BeebWin text to speech support
 
 #include <stdio.h>
-#include <windows.h>
+#include "platforms/platforms.h"
 #include <initguid.h>
 #include "main.h"
 #include "beebwin.h"
@@ -47,11 +47,11 @@ void BeebWin::InitTextToSpeech(void)
 		{
 			m_SpVoice = NULL;
 			m_TextToSpeechEnabled = 0;
-			MessageBox(m_hWnd,"Failed to initialise text-to-speech engine\n",
+			gui::guiMessageBox(m_hWnd,"Failed to initialise text-to-speech engine\n",
 					   WindowTitle,MB_OK|MB_ICONERROR);
 		}
 	}
-	CheckMenuItem(m_hMenu, IDM_TEXTTOSPEECH, m_TextToSpeechEnabled ? MF_CHECKED:MF_UNCHECKED);
+	gui::guiCheckMenuItem(m_hMenu, IDM_TEXTTOSPEECH, m_TextToSpeechEnabled ? MF_CHECKED:MF_UNCHECKED);
 
 	if (m_TextToSpeechEnabled)
 	{
@@ -593,7 +593,7 @@ void BeebWin::InitTextView(void)
 		}
 	}
 
-	CheckMenuItem(m_hMenu, IDM_TEXTVIEW, m_TextViewEnabled ? MF_CHECKED:MF_UNCHECKED);
+	gui::guiCheckMenuItem(m_hMenu, IDM_TEXTVIEW, m_TextViewEnabled ? MF_CHECKED:MF_UNCHECKED);
 }
 
 void BeebWin::TextView(void)
