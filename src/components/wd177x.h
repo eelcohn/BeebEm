@@ -2,6 +2,9 @@
   Written by Eelco Huininga 2016
 */
 
+#ifndef WD177X_HEADER
+#define WD177X_HEADER
+
 enum DFDCTYPES	{WD1770=1, WD1771, WD1772, WD1773, WD1791, WD1793, WD1795, WD1797, WD2791, WD2793, WD2795, WD2797};
 
 const unsigned char StepRate[12][4] = {{6,12,20,30},	// WD1770 step rate in ms
@@ -64,3 +67,4 @@ private:
 	unsigned char	commandPhase;			// Phase of the current command being processed
 
 };
+#endif

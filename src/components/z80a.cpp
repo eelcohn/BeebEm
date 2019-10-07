@@ -66,26 +66,30 @@ void z80::Exec(int Cycles) {
 //		if (cyclecount > 0) {
 			if (this->cpu.halt == TRUE)
 				this->cpu.instruction_reg = 0x00;	// Execute NOP's when the CPU is halted
-			else
+			else {
 				this->cpu.instruction_reg = this->readByte(this->cpu.pc);
+				this->cpu.pc += 1;
+			}
 			this->dumpRegisters();
-			this->cpu.pc += 1;
 //		}
 		Cycles--;								// Not cycle exact at the moment, but it works for now...
 	}
 }
 
 unsigned char z80::readByte(unsigned int address) {
-	unsigned char returnvalue;
+	unsigned char returnvalue = 0;
 
 	switch (this->Architecture) {
 		case ACORN_Z80 :
+			return(returnvalue);
 			break;
 
 		case TORCH_Z80 :
+			return(returnvalue);
 			break;
 
 		case PEDL_Z80 :
+			return(returnvalue);
 			break;
 
 		default :

@@ -1,0 +1,28 @@
+# .gitignore file for BeebEm
+
+# Generic files to ignore
+*.log
+
+# Windows files to ignore
+BeebEm.ilk
+src/platforms/windows/Debug/
+src/platforms/windows/BeebEm.ncb
+src/platforms/windows/BeebEm.suo
+src/platforms/windows/BeebEm.vcproj.*.user
+
+# GCC files to ignore
+*.o
+
+*.user
+Src/.vs
+Src/BeebEm.VC.db
+Src/BeebEm.VC.VC.opendb
+Src/Debug
+Src/Release
+Src/Hardware/Acorn1770/Debug
+Src/Hardware/Acorn1770/Release
+Src/Hardware/OpusDDOS/Debug
+Src/Hardware/OpusDDOS/Release
+Src/Hardware/Watford/Debug
+Src/Hardware/Watford/Release
+Src/InnoSetup/Release

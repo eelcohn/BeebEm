@@ -1,6 +1,15 @@
 BeebEm Change History
 =====================
 
+Version 4.20 (Eelco Huininga)
+------------
+* Added 68k second processor support:
+  - Casper 68000 second processor
+  - Cumana 68008 second processor
+  - CiscOS 68k second processor
+* Added object oriented definitions for ICs to allow easy re-use of code.
+  (located in src/components/)
+
 Version 4.14 (J.G.Harston, Steve Pick, Mike Wyatt)
 ------------
 * IDE hard drive interface.

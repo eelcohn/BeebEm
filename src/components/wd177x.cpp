@@ -7,7 +7,7 @@
 
 /* Constructor / Deconstructor */
 
-wd177x::wd177x(int FPUType) {
+wd177x::wd177x(int FDCType) {
 }
 
 wd177x::~wd177x(void) {
@@ -20,14 +20,14 @@ void wd177x::Reset(void) {
 	this->sector				= 0x01;
 	this->data					= 0x00;
 
-	this->intrq					= TRUE;		// INTRQ is active low output
+	this->intrq					= true;		// INTRQ is active low output
 	this->dden					= NULL;		// DDEN is input
 	this->enp					= NULL;		// ENP is input
-	this->drq					= FALSE;	// DRQ is active high output
+	this->drq					= false;	// DRQ is active high output
 	this->tr00					= NULL;		// TR00 is input
 
-	this->DEBUG					= FALSE;
-	this->ImmediateInterrupt	= FALSE;
+	this->DEBUG					= false;
+	this->ImmediateInterrupt	= false;
 	this->SpinUpSequenceCounter	= 0;
 	this->commandPhase			= 0;
 }
@@ -65,8 +65,8 @@ void wd177x::Exec(int Cycles) {
 		switch ((this->command) & 0xF0) {
 			case 0x00 :	// Restore
 				if (this->tr00) {
-					this->track	= 0x00;				// Set track register to 0
-					this->intrq	= FALSE;			// Generate interrupt
+					this->track		= 0x00;				// Set track register to 0
+					this->intrq		= false;			// Generate interrupt
 					this->status	&= 0x01;			// Clear BUSY bit in status register
 				} else {
 					if (this->commandPhase == 0) {
@@ -88,13 +88,13 @@ void wd177x::Exec(int Cycles) {
 			case 0x40 :	// Step in
 			case 0x50 :
 				if (this->commandPhase == 0)
-					this->dir = TRUE;				// Set direction
+					this->dir = true;				// Set direction
 				break;
 
 			case 0x60 :	// Step out
 			case 0x70 :
 				if (this->commandPhase == 0)
-					this->dir = FALSE;				// Set direction
+					this->dir = false;				// Set direction
 				break;
 
 			case 0x80 :	// Read sector
@@ -111,18 +111,18 @@ void wd177x::Exec(int Cycles) {
 			case 0xD0 :	// Force interrupt
 				if ((this->command & 0xFC) == 0xD0) {		// Terminate immediately without interrupt
 					this->status &= 0x01;					// Reset BUSY bit
-					this->ImmediateInterrupt = FALSE;		// Clear immediate interrupts, if any
+					this->ImmediateInterrupt = false;		// Clear immediate interrupts, if any
 				}
 
 				if ((this->command & 0xFC) == 0xD4) {		// Interrupt on every index pulse
-					if (this->index == TRUE)
-						this->intrq = TRUE;
+					if (this->index == true)
+						this->intrq = true;
 				}
 
 				if ((this->command & 0xFC) == 0xD8) {		// Terminate immediately with interrupt
 						this->status &= 0x01;				// Reset BUSY bit
-						this->ImmediateInterrupt = FALSE;	// Clear immediate interrupts, if any
-						this->intrq = TRUE;					// Set interrupt output
+						this->ImmediateInterrupt = false;	// Clear immediate interrupts, if any
+						this->intrq = true;					// Set interrupt output
 				}
 				break;
 
@@ -146,8 +146,8 @@ unsigned char wd177x::ReadRegister(unsigned char Register) {
 	switch (Register) {
 		case 0x00 :	// Status register
 			Value = this->status;
-			if (this->ImmediateInterrupt == FALSE)	// Do not reset INTRQ signal if previous command was 0xD8 (Immediate interrupt)
-				this->intrq = FALSE;;	// Reset INTRQ signal
+			if (this->ImmediateInterrupt == false)	// Do not reset INTRQ signal if previous command was 0xD8 (Immediate interrupt)
+				this->intrq = false;	// Reset INTRQ signal
 			break;
 
 		case 0x01 :	// Track register
@@ -162,7 +162,7 @@ unsigned char wd177x::ReadRegister(unsigned char Register) {
 			Value = this->data;
 			if (this->command & 0x80) {
 				this->status &= 0x02;	// Clear the 'Data Request' bit in the status register
-				this->drq = FALSE;	// De-activate the DRQ output
+				this->drq = false;	// De-activate the DRQ output
 			}
 			break;
 	}
@@ -180,8 +180,8 @@ void wd177x::WriteRegister(unsigned char Register, unsigned char Value) {
 	switch (Register) {
 		case 0x00 :	// Command register
 			this->command = Value;
-			if (this->ImmediateInterrupt == FALSE)	// Do not reset INTRQ signal if previous command was 0xD8 (Immediate interrupt)
-				this->intrq = FALSE;	// Reset INTRQ signal
+			if (this->ImmediateInterrupt == false)	// Do not reset INTRQ signal if previous command was 0xD8 (Immediate interrupt)
+				this->intrq = false;	// Reset INTRQ signal
 			this->status |= 0x01;	// Set busy bit to indicate a command has been loaded
 			break;
 
@@ -197,7 +197,7 @@ void wd177x::WriteRegister(unsigned char Register, unsigned char Value) {
 			this->data = Value;
 			if (this->command & 0x80) {
 				this->status &= 0x02;	// Clear the 'Data Request' bit in the status register
-				this->drq = FALSE;	// De-activate the DRQ output
+				this->drq = false;	// De-activate the DRQ output
 			}
 			break;
 	}

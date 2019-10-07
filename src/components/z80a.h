@@ -15,7 +15,7 @@ enum Z80_CPUTYPES		{Z80=1, Z80_UNKNOWNCPU=255};
 /****** CPU stuff ************************************************************/
 
 typedef union {				// SR: Status Register / Condition Code Register
-	unsigned short reg;
+	unsigned char reg;
 	struct {
 		bool c:1;			// Carry
 		bool n:1;			// Negative
@@ -79,7 +79,8 @@ public:
 	/****** Constructor / Deconstructor ******************************************/
 	z80::z80(int CPUType);
 	z80::~z80(void);
-	int				Architecture;
+	int			Architecture;
+	unsigned long		clockspeed;
 
 	bool			DEBUG;
 

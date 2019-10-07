@@ -8,21 +8,21 @@
 /* Constructor / Deconstructor */
 
 ula9c018::ula9c018(void) {
-	this->host_irq		= TRUE;
-	this->host_rst		= TRUE;
-	this->parasite_irq	= TRUE;
-	this->parasite_int	= TRUE;
-	this->parasite_rst	= TRUE;
-	this->drq			= FALSE;
+	this->host_irq		= true;
+	this->host_rst		= true;
+	this->parasite_irq	= true;
+	this->parasite_int	= true;
+	this->parasite_rst	= true;
+	this->drq			= false;
 
-	this->DEBUG		= FALSE;
+	this->DEBUG		= false;
 }
 
 ula9c018::~ula9c018(void) {
 }
 
 void ula9c018::Reset(void) {
-	this->parasite_rst		= FALSE;	// Reset parasite system
+	this->parasite_rst		= false;	// Reset parasite system
 	this->clearRegisters();				// Clear all registers
 }
 
@@ -77,14 +77,14 @@ unsigned char ula9c018::ReadHostRegister(unsigned char Register) {
 					if (this->ph_r3data_ptr == 0) {
 						this->hp_r3status &= ~0x80;		// Clear the 'data available' flag
 						if (this->control & 0x08)
-							this->parasite_int = FALSE;	// Activate parasite NMI
+							this->parasite_int = false;	// Activate parasite NMI
 					}
 				}
 			} else {
 				this->hp_r3status &= ~0x80;				// Clear the 'data available' flag
 				this->ph_r3status |= 0x40;				// Set the 'not full' flag
 				if (this->control & 0x08)
-					this->parasite_int = FALSE;			// Activate parasite NMI
+					this->parasite_int = false;			// Activate parasite NMI
 			}
 			break;
 
@@ -95,7 +95,7 @@ unsigned char ula9c018::ReadHostRegister(unsigned char Register) {
 		case 0x07 :	// Register 4 data
 			Value = this->ph_r4data;
 			if (this->ph_r4status & 0x80) {
-				this->host_irq = TRUE;					// De-activate host IRQ
+				this->host_irq = true;					// De-activate host IRQ
 				this->hp_r4status &= ~0x80;				// Clear the 'data available' flag
 				this->ph_r4status |= 0x40;				// Set the 'not full' flag
 			}
@@ -123,7 +123,7 @@ unsigned char ula9c018::ReadParasiteRegister(unsigned char Register) {
 				this->hp_r1status |= 0x40;
 			}
 			if ((this->control & 0x02) && (this->ph_r1status & 0x80))
-				this->parasite_irq = TRUE;			// De-activate parasite IRQ
+				this->parasite_irq = true;			// De-activate parasite IRQ
 			break;
 
 		case 0x02 :	// Register 2 status
@@ -152,14 +152,14 @@ unsigned char ula9c018::ReadParasiteRegister(unsigned char Register) {
 					if (this->hp_r3data_ptr == 0) {
 						this->ph_r3status &= ~0x80;		// Clear the 'data available' flag
 						if (this->control & 0x08)
-							this->parasite_int = FALSE;	// Activate parasite NMI
+							this->parasite_int = false;	// Activate parasite NMI
 					}
 				}
 			} else {
 				this->ph_r3status &= ~0x80;				// Clear the 'data available' flag
 				this->hp_r3status |= 0x40;				// Set the 'not full' flag
 				if (this->control & 0x08)
-					this->parasite_int = FALSE;			// Activate parasite NMI
+					this->parasite_int = false;			// Activate parasite NMI
 			}
 			break;
 
@@ -170,7 +170,7 @@ unsigned char ula9c018::ReadParasiteRegister(unsigned char Register) {
 		case 0x07 :	// Register 4 data
 			Value = this->hp_r4data;
 			if (this->ph_r4status & 0x80) {
-				this->parasite_irq = TRUE;			// De-activate parasite IRQ
+				this->parasite_irq = true;			// De-activate parasite IRQ
 				this->ph_r4status &= ~0x80;			// Clear the 'data available' flag
 				this->hp_r4status |= 0x40;			// Set the 'not full' flag
 			}
@@ -197,9 +197,9 @@ void ula9c018::WriteHostRegister(unsigned char Register, unsigned char Value) {
 			if (this->control & 0x40)
 				this->clearRegisters();				// T-bit: Reset TUBE ULA
 			if (this->control & 0x20)
-				this->parasite_rst = FALSE;			// P-bit: Reset parasite system
+				this->parasite_rst = false;			// P-bit: Reset parasite system
 			else
-				this->parasite_rst = TRUE;
+				this->parasite_rst = true;
 			break;
 
 		case 0x01 :	// Register 1 data
@@ -207,7 +207,7 @@ void ula9c018::WriteHostRegister(unsigned char Register, unsigned char Value) {
 			this->hp_r1status &= 0xBF;				// Clear F1-flag
 			this->ph_r1status |= 0x80;				// Set A1-flag (data available)
 			if (this->control & 0x02)
-				this->parasite_irq = FALSE;			// Activate parasite IRQ
+				this->parasite_irq = false;			// Activate parasite IRQ
 			break;
 
 		case 0x03 :	// Register 2 data
@@ -224,14 +224,14 @@ void ula9c018::WriteHostRegister(unsigned char Register, unsigned char Value) {
 					this->ph_r3status |= 0x80;		// Set A3-flag (data available)
 					this->hp_r3status &= ~0x40;		// Clear F3 flag
 					if (this->control & 0x08)
-						this->parasite_int = FALSE;	// Activate parasite NMI
+						this->parasite_int = false;	// Activate parasite NMI
 				}
 			} else {
 				this->hp_r3data[0] = Value;
 				this->ph_r3status |= 0x80;			// Set A3-flag (data available)
 				this->hp_r3status &= ~0x40;			// Clear F3 flag
 				if (this->control & 0x08)
-					this->parasite_int = FALSE;		// Activate parasite NMI
+					this->parasite_int = false;		// Activate parasite NMI
 			}
 			break;
 
@@ -241,7 +241,7 @@ void ula9c018::WriteHostRegister(unsigned char Register, unsigned char Value) {
 			this->ph_r4status |= 0x80;				// Set A4-flag (data available)
 			break;
 			if (this->control & 0x04)				// If the J-bit is set, then...
-				this->parasite_irq = FALSE;			// Activate parasite IRQ
+				this->parasite_irq = false;			// Activate parasite IRQ
 	}
 }
 
@@ -286,7 +286,7 @@ void ula9c018::WriteParasiteRegister(unsigned char Register, unsigned char Value
 			this->ph_r4status &= 0xBF;				// Clear F1-flag
 			this->hp_r4status |= 0x80;				// Set A4-flag (data available)
 			if (this->control & 0x01)				// If the Q-bit is set, then...
-				this->host_irq = FALSE;				// Activate host IRQ
+				this->host_irq = false;				// Activate host IRQ
 			break;
 	}
 }

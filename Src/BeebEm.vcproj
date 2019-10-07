@@ -238,6 +238,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\peripherals\copro_multiform_z80.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\peripherals\copro_torch_z80.cpp"
 				>
 			</File>
@@ -274,6 +278,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\components\ls374.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Main.cpp"
 				>
 			</File>
@@ -291,6 +299,14 @@
 			</File>
 			<File
 				RelativePath=".\components\r6522.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\components\ram.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\components\rom.cpp"
 				>
 			</File>
 			<File
@@ -428,6 +444,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\peripherals\copro_multiform_z80.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\peripherals\copro_torch_z80.h"
 				>
 			</File>
@@ -468,6 +488,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\components\ls374.h"
+				>
+			</File>
+			<File
 				RelativePath=".\main.h"
 				>
 			</File>
@@ -489,6 +513,14 @@
 			</File>
 			<File
 				RelativePath=".\components\r6522.h"
+				>
+			</File>
+			<File
+				RelativePath=".\components\ram.h"
+				>
+			</File>
+			<File
+				RelativePath=".\components\rom.h"
 				>
 			</File>
 			<File

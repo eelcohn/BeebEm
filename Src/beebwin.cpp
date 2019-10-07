@@ -3309,6 +3309,7 @@ void BeebWin::HandleCommand(int MenuId)
 #ifdef M512COPRO_ENABLED
 		Tube186Enabled		= 0;
 #endif
+ //		mc68kTube_Casper = !mc68kTube_Casper;
 		if (mc68kTube_Casper)
 			mc68kTube_Casper = FALSE;
 		else
@@ -3329,6 +3330,7 @@ void BeebWin::HandleCommand(int MenuId)
 		Tube186Enabled		= 0;
 #endif
 		mc68kTube_Casper = FALSE;
+ //		mc68kTube_CiscOS = !mc68kTube_CiscOS;
 		if (mc68kTube_CiscOS)
 			mc68kTube_CiscOS = FALSE;
 		else
@@ -3349,6 +3351,7 @@ void BeebWin::HandleCommand(int MenuId)
 #endif
 		mc68kTube_Casper = FALSE;
 		mc68kTube_CiscOS = FALSE;
+ //		mc68kTube_Cumana = !mc68kTube_Cumana;
 		if (mc68kTube_Cumana)
 			mc68kTube_Cumana = FALSE;
 		else

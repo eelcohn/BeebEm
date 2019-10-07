@@ -16,12 +16,12 @@ r6522::~r6522(void) {
 void r6522::Reset(void) {
 	this->pa		= 0x00;
 	this->pb		= 0x00;
-	this->ca1		= TRUE;
-	this->ca2		= TRUE;
-	this->cb1		= TRUE;
-	this->cb2		= TRUE;
+	this->ca1		= true;
+	this->ca2		= true;
+	this->cb1		= true;
+	this->cb2		= true;
 	this->res		= NULL;	// Input
-	this->irq		= TRUE;
+	this->irq		= true;
 
 	this->ora		= 0xFF;
 	this->ira		= 0xFF;
@@ -39,7 +39,7 @@ void r6522::Reset(void) {
 	this->ier		= 0x80;
 	this->ifr		= 0x00;
 
-	this->DEBUG		= FALSE;
+	this->DEBUG		= false;
 }
 
 void r6522::Exec(int Cycles) {
@@ -48,9 +48,9 @@ void r6522::Exec(int Cycles) {
 
 	this->updateInterrupt();		// Update the IFR register
 	if ((this->pcr & 0x0C) == 0x08)	// CA2 is output and in pulse mode
-		this->ca2 = TRUE;			// No need to check current value of CA2, just set it to true
+		this->ca2 = true;			// No need to check current value of CA2, just set it to true
 	if ((this->pcr & 0xE0) == 0xA0)	// CB2 is output and in pulse mode
-		this->cb2 = TRUE;			// No need to check current value of CB2, just set it to true
+		this->cb2 = true;			// No need to check current value of CB2, just set it to true
 
 	if (this->t1c != 0) {
 		this->t1c--;
@@ -91,14 +91,14 @@ unsigned char r6522::ReadRegister(unsigned char Register) {
 			Value = this->irb;
 			this->ifr &= ~0x10;
 			if ((this->pcr & 0xC0) == 0x80)	// CB2 is output and in handshake or pulse mode
-				this->cb2 = FALSE;
+				this->cb2 = false;
 			break;
 
 		case 0x01 :	// Input register A
 			Value = this->ira;
 			this->ifr &= ~0x02;
 			if ((this->pcr & 0x0C) == 0x08)	// CA2 is output and in handshake or pulse mode
-				this->ca2 = FALSE;
+				this->ca2 = false;
 			break;
 
 		case 0x02 :	// Data direction register B
@@ -178,7 +178,7 @@ void r6522::WriteRegister(unsigned char Register, unsigned char Value) {
 			this->pb |= Value;				// And set them accordingly to the ORB register
 			this->ifr &= ~0x10;				// Clear the CB1 flag in the IFR register
 			if ((this->pcr & 0xC0) == 0x80)	// Is CB2 output and in handshake or pulse mode?
-				this->cb2 = FALSE;			// If so, then generate "Data Taken" on CB2
+				this->cb2 = false;			// If so, then generate "Data Taken" on CB2
 			break;
 
 		case 0x01 :	// Output register A
@@ -187,7 +187,7 @@ void r6522::WriteRegister(unsigned char Register, unsigned char Value) {
 			this->pa |= Value;				// And set them accordingly to the ORA register
 			this->ifr &= ~0x02;				// Clear the CA1 flag in the IFR register
 			if ((this->pcr & 0x0C) == 0x08)	// Is CA2 output and in handshake or pulse mode?
-				this->ca2 = FALSE;			// If so, then generate "Data Taken" on CA2
+				this->ca2 = false;			// If so, then generate "Data Taken" on CA2
 			break;
 
 		case 0x02 :	// Data direction register B
@@ -244,13 +244,13 @@ void r6522::WriteRegister(unsigned char Register, unsigned char Value) {
 		case 0x0C :	// Pehiperal Control Register
 			this->pcr = Value;
 			if ((Value & 0x0E) == 0x0C)
-				this->ca2 = FALSE;
+				this->ca2 = false;
 			if ((Value & 0x0E) == 0x0E)
-				this->ca2 = TRUE;
+				this->ca2 = true;
 			if ((Value & 0xE0) == 0xC0)
-				this->cb2 = FALSE;
+				this->cb2 = false;
 			if ((Value & 0xE0) == 0xE0)
-				this->cb2 = TRUE;
+				this->cb2 = true;
 			break;
 
 		case 0x0D :	// Interrupt Flag Register
@@ -337,9 +337,9 @@ void r6522::setCB2(bool value) {
 void r6522::updateInterrupt(void) {
 	if (this->ifr & (this->ier & 0x7F)) {
 		this->ifr |= 0x80;		// Update top bit of IFR
-		this->irq = FALSE;		// ... and the IRQ output
+		this->irq = false;		// ... and the IRQ output
 	} else {
 		this->ifr &= 0x7F;		// Update top bit of IFR
-		this->irq = TRUE;		// ... and the IRQ output
+		this->irq = true;		// ... and the IRQ output
 	}
 }

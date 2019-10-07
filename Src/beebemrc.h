@@ -280,7 +280,6 @@ Boston, MA  02110-1301, USA.
 #define ID_LOADTAPE                     40108
 #define ID_REWINDTAPE                   40116
 #define ID_SFX_RELAY                    40117
-#define IDM_TUBE                        40118
 #define ID_HIDEMENU                     40121
 #define ID_TAPESOUND                    40122
 #define ID_SERIAL                       40123
@@ -333,7 +332,6 @@ Boston, MA  02110-1301, USA.
 #define IDM_BLUR_2                      40178
 #define IDM_BLUR_4                      40179
 #define IDM_BLUR_8                      40180
-#define IDM_TORCH                       40181
 #define IDM_CAPTUREVIDEO                40182
 #define IDM_ENDVIDEO                    40183
 #define IDM_VIDEORES1                   40185
@@ -347,8 +345,6 @@ Boston, MA  02110-1301, USA.
 #define IDM_VIDEOSKIP5                  40193
 #define ID_ECONET                       40194
 #define IDM_SPEECH                      40196
-#define IDM_TUBE186                     40197
-#define IDM_ACORNZ80                    40198
 #define ID_TELETEXT                     40199
 #define ID_HARDDRIVE                    40200
 #define IDM_EJECTDISC0                  40201
@@ -379,10 +375,6 @@ Boston, MA  02110-1301, USA.
 #define IDM_1440X1080                   40226
 #define IDM_1600X1200                   40227
 #define ID_UPRM                         40228
-#define IDM_ARM                         40229
-#define IDM_COPRO_CISCOS                      40235
-#define IDM_COPRO_CUMANA68K                  40237
-#define IDM_COPRO_CASPER68K                  40240
 #define IDM_LOADKEYMAP                  40230
 #define IDM_SAVEKEYMAP                  40231
 #define IDM_AUTOSAVE_PREFS_CMOS         40232
@@ -437,6 +429,16 @@ Boston, MA  02110-1301, USA.
 #define ID_IDEDRIVE                     40287
 #define ID_VIEW_DD_1280X720             40288
 #define ID_VIEW_DD_1920X1080            40289
+#define IDM_TUBE                        41000
+#define IDM_ACORNZ80                    41001
+#define IDM_TUBE186                     41002
+#define IDM_TORCH                       41003
+#define IDM_ARM                         41004
+#define IDM_COPRO_CISCOS                41005
+#define IDM_COPRO_CUMANA68K             41006
+#define IDM_COPRO_CASPER68K             41007
+#define IDM_COPRO_MULTIFORM_Z80         41008
+
 #define IDC_STATIC                      -1
 
 // Next default values for new objects

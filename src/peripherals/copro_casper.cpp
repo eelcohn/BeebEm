@@ -3,8 +3,10 @@
 */
 
 #include "copro_casper.h"
+#include "../components/rom.h"
+#include "../components/ram.h"
 #include "../beebmem.h"				// Included for RomPath variable
-#include "../main.h"					// Included for WriteLog()
+#include "../main.h"				// Included for WriteLog()
 
 //bool Enable_Casper68k	= false;
 bool mc68kTube_Casper	= false;
@@ -14,14 +16,15 @@ bool mc68kTube_Casper	= false;
 /* Constructor / Deconstructor */
 
 copro_casper::copro_casper(void) {
-	this->DEBUG					= false;
-	this->RAM_SIZE				= 0x00020000;	// 128 KBytes of ram memory
-	this->ROM_SIZE				= 0x00004000;	// 16 KBytes of rom memory
-	this->RAM_ADDR				= 0x00020000;	// RAM is at $00020000
-	this->ROM_ADDR				= 0x00000000;	// ROM is at $00000000
-	this->ramMemory = (unsigned char *)malloc(this->RAM_SIZE);
-	this->romMemory = (unsigned char *)malloc(this->ROM_SIZE);
+	this->DEBUG		= false;
+	this->RAM_SIZE	= 0x00020000;	// 128 KBytes of ram memory
+	this->ROM_SIZE	= 0x00004000;	// 16 KBytes of rom memory
+	this->RAM_ADDR	= 0x00020000;	// RAM is at $00020000
+	this->ROM_ADDR	= 0x00000000;	// ROM is at $00000000
 	strcpy (this->biosFile, (char *)"BeebFile/Casper68k.rom");
+
+	this->ram					= new rammemory(this->RAM_SIZE);
+	this->rom					= new rommemory(this->biosFile);
 
 	this->host_via				= new r6522;
 	this->parasite_via			= new r6522;
@@ -34,17 +37,17 @@ copro_casper::copro_casper(void) {
 }
 
 copro_casper::~copro_casper(void) {
-	free(this->romMemory);
-	free(this->ramMemory);
 	delete this->cpu;
 	delete this->parasite_via;
 	delete this->host_via;
+//	delete this->rom;
+//	delete this->ram;
 }
 
 /* Reset all hardware components of the second processor */
 
 void copro_casper::Reset(void) {
-	this->InitMemory();				// Load firmware ROM and clear RAM
+//	this->InitMemory();				// Load firmware ROM and clear RAM
 	this->host_via->Reset();
 	this->parasite_via->Reset();
 	this->cpu->Reset();
@@ -69,7 +72,7 @@ void copro_casper::Exec(int Cycles) {
 	// And finally emulate the cpu
 	this->cpu->Exec(Cycles);
 }
-
+/*
 void copro_casper::InitMemory(void) {
 	FILE *fp;
 	char path[256];
@@ -91,3 +94,4 @@ void copro_casper::InitMemory(void) {
 
 	memset(this->ramMemory, 0, this->RAM_SIZE);	// Clear RAM
 }
+*/

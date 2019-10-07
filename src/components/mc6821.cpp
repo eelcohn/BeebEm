@@ -13,7 +13,7 @@
 /* Constructor / Deconstructor */
 
 mc6821::mc6821(void) {
-	this->DEBUG = FALSE;
+	this->DEBUG = false;
 }
 
 mc6821::~mc6821(void) {
@@ -26,12 +26,12 @@ mc6821::~mc6821(void) {
 void mc6821::Reset(void) {
 	this->pa		= 0x00;
 	this->pb		= 0x00;
-	this->ca1		= FALSE;	// CA1 is input only
-	this->ca2		= FALSE;	// CA2 is input or output
-	this->cb1		= FALSE;	// CB1 is input only
-	this->cb2		= FALSE;	// CB2 is input or output
-	this->irqa		= TRUE;		// IRQ lines are active low
-	this->irqb		= TRUE;
+	this->ca1		= false;	// CA1 is input only
+	this->ca2		= false;	// CA2 is input or output
+	this->cb1		= false;	// CB1 is input only
+	this->cb2		= false;	// CB2 is input or output
+	this->irqa		= true;		// IRQ lines are active low
+	this->irqb		= true;
 
 	this->data_a	= 0;
 	this->data_b	= 0;
@@ -103,9 +103,9 @@ void mc6821::WriteRegister(unsigned int Register, unsigned char Value) {
 			this->ctrl_a = (Value & 0x3F);
 			if ((Value & 0x30) == 0x30)
 				if (Value & 0x08)
-					this->ca2 = TRUE;
+					this->ca2 = true;
 				else
-					this->ca2 = FALSE;
+					this->ca2 = false;
 			break;
 
 		case 0x02 :		// PRB or DDRB
@@ -121,9 +121,9 @@ void mc6821::WriteRegister(unsigned int Register, unsigned char Value) {
 			this->ctrl_b = Value;
 			if ((Value & 0x30) == 0x30)
 				if (Value & 0x08)
-					this->cb2 = TRUE;
+					this->cb2 = true;
 				else
-					this->cb2 = FALSE;
+					this->cb2 = false;
 			break;
 	}
 	this->updateIRQ();
@@ -143,7 +143,7 @@ void mc6821::setCA1(bool value) {
 			WriteLog("mc6821::setCA1 current=%01X new=%01X\n", this->ca1, value);
 		this->ctrl_a |= 0x80;
 		if ((this->ctrl_a & 0x28) == 0x20)
-			this->ca2 = TRUE;	// Read strobe with CA1 restore
+			this->ca2 = true;	// Read strobe with CA1 restore
 	}
 	this->ca1 = value;
 }
@@ -165,7 +165,7 @@ void mc6821::setCB1(bool value) {
 			WriteLog("mc6821::setCB1 current=%01X new=%01X\n", this->cb1, value);
 		this->ctrl_b |= 0x80;
 		if ((this->ctrl_b & 0x28) == 0x20)
-			this->cb2 = TRUE;	// Read strobe with CB1 restore
+			this->cb2 = true;	// Read strobe with CB1 restore
 	}
 	this->cb1 = value;
 }
@@ -183,12 +183,12 @@ void mc6821::setCB2(bool value) {
 
 void mc6821::updateIRQ(void) {
 	if ((this->ctrl_a & 0x80) || (this->ctrl_b & 0x80))
-		this->irqa = TRUE;
+		this->irqa = true;
 	else
-		this->irqa = FALSE;
+		this->irqa = false;
 
 	if ((this->ctrl_a & 0x40) || (this->ctrl_b & 0x40))
-		this->irqb = TRUE;
+		this->irqb = true;
 	else
-		this->irqb = FALSE;
+		this->irqb = false;
 }

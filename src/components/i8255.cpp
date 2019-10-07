@@ -19,7 +19,7 @@ void i8255::Reset(void) {
 	this->port_c	= 0x00;
 	this->control	= 0x00;
 
-	this->DEBUG		= FALSE;
+	this->DEBUG		= false;
 }
 
 void i8255::Exec(int Cycles) {

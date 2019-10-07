@@ -2,20 +2,20 @@
   Written by Eelco Huininga 2016
 */
 
-#include <stdio.h>					// Included for FILE *
-#include <string.h>					// Included for strcpy, strcat
+#include <stdio.h>							// Included for FILE *
+#include <string.h>							// Included for strcpy, strcat
 
 #include "mc68k.h"
-#include "../beebmem.h"				// Included for RomPath variable
-#include "../main.h"				// Included for WriteLog()
-#include "../tube.h"				// Included for ReadTubeFromParasiteSide() and WriteTubeFromParasiteSide()
-#include "../peripherals/copro_casper.h"			// Included for the copro_casper object
-#include "../peripherals/copro_ciscos.h"			// Included for the copro_ciscos object
-#include "../peripherals/copro_cumana.h"			// Included for the copro_cumana object
+#include "../beebmem.h"						// Included for RomPath variable
+#include "../main.h"						// Included for WriteLog()
+#include "../tube.h"						// Included for ReadTubeFromParasiteSide() and WriteTubeFromParasiteSide()
+#include "../peripherals/copro_casper.h"	// Included for the copro_casper object
+#include "../peripherals/copro_ciscos.h"	// Included for the copro_ciscos object
+#include "../peripherals/copro_cumana.h"	// Included for the copro_cumana object
 
-extern copro_casper *obj_copro_casper;	// Object needed for memory access
-extern copro_ciscos *obj_copro_ciscos;	// Object needed for memory access
-extern copro_cumana *obj_copro_cumana;	// Object needed for memory access
+extern copro_casper *obj_copro_casper;		// Object needed for memory access
+extern copro_ciscos *obj_copro_ciscos;		// Object needed for memory access
+extern copro_cumana *obj_copro_cumana;		// Object needed for memory access
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : strrchr(__FILE__, '\\') ? strrchr(__FILE__, '\\') + 1 : __FILE__)
 
@@ -562,13 +562,13 @@ unsigned char mc68k::readByte(unsigned int address) {
 	switch (this->Architecture) {
 		case CASPER :
 			if ((address >= obj_copro_casper->ROM_ADDR) && (address < obj_copro_casper->ROM_ADDR + (obj_copro_casper->ROM_SIZE)))
-				return (obj_copro_casper->romMemory[address & (obj_copro_casper->ROM_SIZE - 1)]);
+				return (obj_copro_casper->rom->memory[address & (obj_copro_casper->ROM_SIZE - 1)]);
 			if ((address > 0x00010000) && (address < 0x00010020)) {
 				returnvalue = obj_copro_casper->parasite_via->ReadRegister((address & 0x0000001F) >> 1);
 				return (returnvalue);
 			}
 			if ((address >= obj_copro_casper->RAM_ADDR) && (address < obj_copro_casper->RAM_ADDR + (obj_copro_casper->RAM_SIZE)))
-				return (obj_copro_casper->ramMemory[address & (obj_copro_casper->RAM_SIZE - 1)]);
+				return (obj_copro_casper->ram->memory[address & (obj_copro_casper->RAM_SIZE - 1)]);
 			return(0);
 			break;
 
@@ -630,7 +630,7 @@ void mc68k::writeByte(unsigned int address, unsigned char value) {
 			if ((address > 0x00010000) && (address < 0x00010020))
 				obj_copro_casper->parasite_via->WriteRegister(((address & 0x0000001F) >> 1), value);
 			if ((address >= obj_copro_casper->RAM_ADDR) && (address < obj_copro_casper->RAM_ADDR + (obj_copro_casper->RAM_SIZE)))
-				obj_copro_casper->ramMemory[address & (obj_copro_casper->RAM_SIZE - 1)] = value;
+				obj_copro_casper->ram->memory[address & (obj_copro_casper->RAM_SIZE - 1)] = value;
 			break;
 
 		case CISCOS :
@@ -2134,13 +2134,13 @@ void mc68k::ASxLSx_handler(void) {
 					value = 8;
 			}
 			if (this->cpu.instruction_reg & 0x0100) {	// Shift left
-				this->cpu.sr.flag.c = ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (1 << (8 - value))) == true);
-				if (((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (8 - value))) == true) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (8 - value))) != (((1 << value) - 1) << (8 - value))))
+				this->cpu.sr.flag.c = (this->cpu.d[this->cpu.instruction_reg & 0x0007] & (1 << (8 - value))) ? true : false;
+				if ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (8 - value))) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (8 - value))) != (((1 << value) - 1) << (8 - value))))
 					this->cpu.sr.flag.v = true;	// Bit change during shift, so set overflow
 				result = this->cpu.d[this->cpu.instruction_reg & 0x0007] << value;
 			} else {								// Shift right
-				this->cpu.sr.flag.c = ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (0x00000080 >> value)) == true);
-				if (((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) == true) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) != ((1 << value) - 1)))
+				this->cpu.sr.flag.c = (this->cpu.d[this->cpu.instruction_reg & 0x0007] & (0x00000080 >> value)) ? true : false;
+				if ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) != ((1 << value) - 1)))
 					this->cpu.sr.flag.v = true;	// Bit change during shift, so set overflow
 				result = ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & 0x000000FF) >> value);
 				if (this->cpu.d[this->cpu.instruction_reg & 0x0007] & 0x00000080)
@@ -2164,13 +2164,13 @@ void mc68k::ASxLSx_handler(void) {
 					value = 8;
 			}
 			if (this->cpu.instruction_reg & 0x0100) {	// Shift left
-				this->cpu.sr.flag.c = ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (1 << (16 - value))) == true);
-				if (((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (16 - value))) == true) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (16 - value))) != (((1 << value) - 1) << (16 - value))))
+				this->cpu.sr.flag.c = (this->cpu.d[this->cpu.instruction_reg & 0x0007] & (1 << (16 - value))) ? true : false;
+				if ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (16 - value))) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (16 - value))) != (((1 << value) - 1) << (16 - value))))
 					this->cpu.sr.flag.v = true;	// Bit change during shift, so set overflow
 				result = this->cpu.d[this->cpu.instruction_reg & 0x0007] << value;
 			} else {								// Shift right
-				this->cpu.sr.flag.c = ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (0x00008000 >> value)) == true);
-				if (((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) == true) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) != ((1 << value) - 1)))
+				this->cpu.sr.flag.c = (this->cpu.d[this->cpu.instruction_reg & 0x0007] & (0x00008000 >> value)) ? true : false;
+				if ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) != ((1 << value) - 1)))
 					this->cpu.sr.flag.v = true;	// Bit change during shift, so set overflow
 				result = ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & 0x0000FFFF) >> value);
 				if (this->cpu.d[this->cpu.instruction_reg & 0x0007] & 0x00008000)
@@ -2194,13 +2194,13 @@ void mc68k::ASxLSx_handler(void) {
 					value = 8;
 			}
 			if (this->cpu.instruction_reg & 0x0100) {	// Shift left
-				this->cpu.sr.flag.c = ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (1 << (32 - value))) == true);
-				if (((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (32 - value))) == true) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (32 - value))) != (((1 << value) - 1) << (32 - value))))
+				this->cpu.sr.flag.c = (this->cpu.d[this->cpu.instruction_reg & 0x0007] & (1 << (32 - value))) ? true : false;
+				if ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (32 - value))) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (((1 << value) - 1) << (32 - value))) != (((1 << value) - 1) << (32 - value))))
 					this->cpu.sr.flag.v = true;	// Bit change during shift, so set overflow
 				result = this->cpu.d[this->cpu.instruction_reg & 0x0007] << value;
 			} else {								// Shift right
-				this->cpu.sr.flag.c = ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & (0x80000000 >> value)) == true);
-				if (((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) == true) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) != ((1 << value) - 1)))
+				this->cpu.sr.flag.c = (this->cpu.d[this->cpu.instruction_reg & 0x0007] & (0x80000000 >> value)) ? true : false;
+				if ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) && ((this->cpu.d[this->cpu.instruction_reg & 0x0007] & ((1 << value) - 1)) != ((1 << value) - 1)))
 					this->cpu.sr.flag.v = true;	// Bit change during shift, so set overflow
 				result = this->cpu.d[this->cpu.instruction_reg & 0x0007] >> value;
 				if (this->cpu.d[this->cpu.instruction_reg & 0x0007] & 0x80000000)

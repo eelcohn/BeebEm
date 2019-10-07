@@ -30,7 +30,7 @@ mc146818::~mc146818(void) {
 void mc146818::Reset(void) {
 	unsigned char	i;
 
-	this->irq = TRUE;
+	this->irq = true;
 
 	for (i = 0; i < 63; i++)
 		this->registers[i] = 0;
@@ -40,7 +40,7 @@ void mc146818::Exec(int Cycles) {
 	if ((this->registers[1] == ltm->tm_sec) && (this->registers[3] == ltm->tm_min) && (this->registers[3] == ltm->tm_hour)) {
 		this->registers[0x0C] |= 0x40;		// Set AF flag
 		if (this->registers[0x0B] & 0x20) {	// Check the AIE flag
-			this->irq = FALSE;				// Lower IRQ output
+			this->irq = false;				// Lower IRQ output
 			this->registers[0x0C] |= 0x80;	// Set IRQF flag
 		}
 	}
@@ -111,6 +111,7 @@ unsigned char mc146818::Read(void) {
 		case 0x0C :	// Register C
 			Value = this->registers[0x0C];
 			this->registers[0x0C] = 0x00;				// Clear all flags on read
+			this->irq = true;					// Clear IRQ
 			break;
 
 		default :
